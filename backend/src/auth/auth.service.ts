@@ -2,54 +2,60 @@ import {Injectable, UnauthorizedException} from '@nestjs/common';
 import {UsersService} from '../users/users.service';
 import {JwtService} from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import {RegisterDto} from "./dto/register.dto";
+import {LoginDto} from "./dto/login.dto";
 
 @Injectable()
 export class AuthService {
     constructor(
-        private usersService: UsersService,
-        private jwtService: JwtService
+        private readonly usersService: UsersService,
+        private readonly jwtService: JwtService
     ) {
     }
 
-    async register(data: {
-        email: string;
-        password: string;
-        firstName?: string;
-    }) {
-        const hash = await bcrypt.hash(data.password, 10);
+    async register(dto: RegisterDto) {
+        const passwordHash = await bcrypt.hash(dto.password, 10);
 
-        return this.usersService.create({
-            email: data.email,
-            passwordHash: hash,
-            firstName: data.firstName,
+        const user = await this.usersService.create({
+            email: dto.email,
+            passwordHash,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
         });
+
+        const { passwordHash: _, ...safeUser } = user;
+        return safeUser;
     }
 
-    async login(data: {
-        email: string;
-        password: string;
-    }) {
-        const user = await this.usersService.findByEmail(data.email);
+    async login(dto: LoginDto) {
+        const user = await this.usersService.findByEmail(dto.email);
         if (!user) {
             throw new UnauthorizedException('Invalid credentials');
         }
-        const isMatch = await bcrypt.compare(data.password, user.passwordHash);
+        const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
         if (!isMatch) {
             throw new UnauthorizedException('Invalid credentials');
         }
+
+        const payload = {
+            sub: user.id,
+            email: user.email,
+            role: user.role,
+        };
+
+        const accessToken = await this.jwtService.signAsync(payload);
+
         //JWT - HEADER.PAYLOAD.SIGNATURE
         return {
-            // message: 'Login success',
-            // userId: user.id,
-            access_token: this.jwtService.sign({
-                sub: user.id,
-                email: user.email,
-            }),
+            accessToken,
             user: {
                 id: user.id,
                 email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role,
             },
-        }
+        };
 
     }
 }
