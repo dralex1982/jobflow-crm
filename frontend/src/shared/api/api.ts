@@ -1,21 +1,14 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-    const response = await fetch(`${API_URL}${path}`, {
-        ...options,
-        headers: {
+export function getAuthHeaders(token?: string): HeadersInit {
+    if (!token) {
+        return {
             'Content-Type': 'application/json',
-            ...(options?.headers || {}),
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
+        };
     }
 
-    return response.json();
-}
-
-export function getHealth() {
-    return apiFetch<{ status: string }>('/health');
+    return {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+    };
 }
