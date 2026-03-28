@@ -9,21 +9,42 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 enum UserRole {
-    USER
-    ADMIN
+  USER
+  ADMIN
+}
+
+enum VacancyStatus {
+  APPLIED
+  INTERVIEW
+  REJECTED
+  OFFER
 }
 
 model User {
-      id           String   @id @default(uuid())
-      email        String   @unique
-      passwordHash String
-      firstName    String?
-      lastName     String?
-      role         UserRole @default(USER)
-      createdAt    DateTime @default(now())
-      updatedAt    DateTime @updatedAt
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  firstName    String?
+  lastName     String?
+  role         UserRole  @default(USER)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  Vacancy      Vacancy[]
+}
+
+model Vacancy {
+  id        String        @id @default(uuid())
+  title     String
+  company   String
+  status    VacancyStatus @default(APPLIED)
+  notes     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
