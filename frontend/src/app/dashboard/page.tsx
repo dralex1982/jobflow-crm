@@ -2,7 +2,15 @@
 import {useRouter} from 'next/navigation';
 import {useAuthStore} from "@/features/auth/model/use-auth-store";
 import {useEffect, useState} from "react";
-import {createVacancy, getVacancies, Vacancy} from "@/shared/api/vacancies";
+import {
+    createVacancy,
+    deleteVacancy,
+    getVacancies,
+    updateVacancy,
+} from "@/shared/api/vacancies";
+import {Vacancy, VacancyStatus} from "@/entities/vacancy/model/vacancy";
+import {VacancyCard} from "@/entities/vacancy/ui/vacancy-card";
+import {CreateVacancyForm} from "@/features/vacancy/create-vacancy-form/create-vacancy-form";
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -12,13 +20,6 @@ export default function DashboardPage() {
     const [vacancies, setVacancies] = useState<Vacancy[]>([]);
     const [isVacanciesLoading, setIsVacanciesLoading] = useState(true);
     const [vacanciesError, setVacanciesError] = useState('');
-
-    const [title, setTitle] = useState('');
-    const [company, setCompany] = useState('');
-    const [notes, setNotes] = useState('');
-
-    const [isCreating, setIsCreating] = useState(false);
-    const [createError, setCreateError] = useState('');
 
     useEffect(() => {
         if (!isLoading && !isAuth) {
@@ -31,52 +32,35 @@ export default function DashboardPage() {
             return;
         }
 
-        async function loadVacancies() {
-            try {
-                setVacanciesError('');
-                setIsVacanciesLoading(true);
-
-                const data = await getVacancies();
-                setVacancies(data);
-            } catch (error) {
-                setVacanciesError('Failed to load vacancies');
-            } finally {
-                setIsVacanciesLoading(false);
-            }
-        }
-
-        loadVacancies();
+        getVacancies()
+            .then((data) => setVacancies(data))
+            .finally(() => setIsVacanciesLoading(false));
     }, [isAuth]);
 
-    async function handleCreate(event: React.FormEvent<HTMLFormElement>) {
-        event.preventDefault();
 
-        setCreateError('');
+    async function handleCreateVacancy(data: {
+        title: string;
+        company: string;
+        notes?: string;
+    }) {
+        const newVacancy = await createVacancy(data);
 
-        if (!title.trim() || !company.trim()) {
-            setCreateError('Title and company are required');
-            return;
-        }
+        setVacancies((prev) => [newVacancy, ...prev]);
+    }
 
-        try {
-            setIsCreating(true);
 
-            const newVacancy = await createVacancy({
-                title: title.trim(),
-                company: company.trim(),
-                notes: notes.trim() || undefined,
-            });
+    async function handleStatusChange(id: string, status: VacancyStatus) {
+        const updatedVacancy = await updateVacancy(id, {status});
 
-            setVacancies((prev) => [newVacancy, ...prev]);
+        setVacancies((prev) =>
+            prev.map((item) => (item.id === id ? updatedVacancy : item)),
+        );
+    }
 
-            setTitle('');
-            setCompany('');
-            setNotes('');
-        } catch (error) {
-            setCreateError('Failed to create vacancy');
-        } finally {
-            setIsCreating(false);
-        }
+    async function handleDelete(id: string) {
+        await deleteVacancy(id);
+
+        setVacancies((prev) => prev.filter((item) => item.id !== id));
     }
 
     if (isLoading) {
@@ -100,105 +84,29 @@ export default function DashboardPage() {
                 </div>
 
                 <button
-                    onClick={logout}
-                    className="rounded border px-4 py-2"
-                >
+                    onClick={logout} className="rounded border px-4 py-2">
                     Logout
                 </button>
             </div>
 
+            <CreateVacancyForm onCreate={handleCreateVacancy}/>
+
             <section className="mt-8 rounded-xl border p-4">
-                <h2 className="text-lg font-semibold">Add Vacancy</h2>
-
-                <form onSubmit={handleCreate} className="mt-4 space-y-3">
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Position
-                        </label>
-                        <input
-                            value={title}
-                            onChange={(event) => setTitle(event.target.value)}
-                            placeholder="Frontend Developer"
-                            className="w-full rounded-md border px-3 py-2"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Company
-                        </label>
-                        <input
-                            value={company}
-                            onChange={(event) => setCompany(event.target.value)}
-                            placeholder="Google"
-                            className="w-full rounded-md border px-3 py-2"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Notes
-                        </label>
-                        <textarea
-                            value={notes}
-                            onChange={(event) => setNotes(event.target.value)}
-                            placeholder="React + TypeScript, remote, strong UI focus"
-                            className="w-full rounded-md border px-3 py-2"
-                            rows={4}
-                        />
-                    </div>
-
-                    {createError ? (
-                        <p className="text-sm text-red-500">{createError}</p>
-                    ) : null}
-
-                    <button
-                        type="submit"
-                        disabled={isCreating}
-                        className="rounded-md border px-4 py-2"
-                    >
-                        {isCreating ? 'Creating...' : 'Add Vacancy'}
-                    </button>
-                </form>
-            </section>
-
-            <section className="mt-8">
-                <h2 className="text-lg font-semibold">Vacancies</h2>
+                <h2 className="text-lg font-semibold">My vacancies</h2>
 
                 {isVacanciesLoading ? (
                     <p className="mt-4 text-sm text-gray-500">Loading vacancies...</p>
-                ) : vacanciesError ? (
-                    <p className="mt-4 text-sm text-red-500">{vacanciesError}</p>
                 ) : vacancies.length === 0 ? (
-                    <p className="mt-4 text-sm text-gray-500">
-                        No vacancies yet. Add your first one.
-                    </p>
+                    <p className="mt-4 text-sm text-gray-500">No vacancies yet.</p>
                 ) : (
                     <ul className="mt-4 space-y-3">
                         {vacancies.map((vacancy) => (
-                            <li
+                            <VacancyCard
                                 key={vacancy.id}
-                                className="rounded-xl border p-4"
-                            >
-                                <div className="flex items-start justify-between gap-4">
-                                    <div>
-                                        <h3 className="font-semibold">{vacancy.title}</h3>
-                                        <p className="text-sm text-gray-500">{vacancy.company}</p>
-                                    </div>
-
-                                    <span className="rounded-full border px-3 py-1 text-xs">
-                    {vacancy.status}
-                  </span>
-                                </div>
-
-                                {vacancy.notes ? (
-                                    <p className="mt-3 text-sm text-gray-600">{vacancy.notes}</p>
-                                ) : null}
-
-                                <p className="mt-3 text-xs text-gray-400">
-                                    Created at: {new Date(vacancy.createdAt).toLocaleString()}
-                                </p>
-                            </li>
+                                vacancy={vacancy}
+                                onStatusChange={handleStatusChange}
+                                onDelete={handleDelete}
+                            />
                         ))}
                     </ul>
                 )}

@@ -1,6 +1,7 @@
-import {Injectable} from '@nestjs/common';
+import {Injectable, NotFoundException} from '@nestjs/common';
 import {PrismaService} from '../prisma/prisma.service';
 import {CreateVacancyDto} from "./dto/create-vacancy.dto";
+import {UpdateVacancyDto} from "./dto/update-vacancy.dto";
 
 @Injectable()
 class VacanciesService {
@@ -27,6 +28,27 @@ class VacanciesService {
         });
     }
 
+    async update(
+        userId: string,
+        vacancyId: string,
+        dto: UpdateVacancyDto) {
+        const vacancy = await this.prisma.vacancy.findFirst({
+            where: {
+                id: vacancyId,
+                userId,
+            },
+        });
+
+        if (!vacancy) {
+            throw new NotFoundException('Vacancy not found');
+        }
+
+        return this.prisma.vacancy.update({
+            where: {id: vacancyId},
+            data: dto,
+        });
+    }
+
     findAll(userId: string) {
         return this.prisma.vacancy.findMany({
             where: {userId},
@@ -40,6 +62,25 @@ class VacanciesService {
                 createdAt: true,
             },
         });
+    }
+
+    async remove(userId: string, vacancyId: string) {
+        const vacancy = await this.prisma.vacancy.findFirst({
+            where: {
+                id: vacancyId,
+                userId,
+            },
+        });
+
+        if (!vacancy) {
+            throw new NotFoundException('Vacancy not found');
+        }
+
+        await this.prisma.vacancy.delete({
+            where: {id: vacancyId},
+        });
+
+        return {success: true};
     }
 }
 

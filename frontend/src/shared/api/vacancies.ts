@@ -1,19 +1,18 @@
 import {API_URL, getAuthHeaders} from './api';
 import {getAccessToken} from '@/shared/lib/auth-token';
+import {Vacancy, VacancyStatus} from "@/entities/vacancy/model/vacancy";
 
-export interface Vacancy {
-    id: string;
-    title: string;
-    company: string;
-    status: string;
-    notes?: string | null;
-    createdAt: string;
-}
-
-export interface CreateVacancyRequest {
+export interface CreateVacancyPayload {
     title: string;
     company: string;
     notes?: string;
+}
+
+interface UpdateVacancyPayload {
+    title?: string;
+    company?: string;
+    notes?: string;
+    status?: VacancyStatus;
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
@@ -44,7 +43,7 @@ export async function getVacancies(): Promise<Vacancy[]> {
 }
 
 export async function createVacancy(
-    data: CreateVacancyRequest,
+    data: CreateVacancyPayload,
 ): Promise<Vacancy> {
     const token = getAccessToken();
 
@@ -55,4 +54,32 @@ export async function createVacancy(
     });
 
     return handleResponse<Vacancy>(res);
+}
+
+export async function updateVacancy(
+    id: string,
+    data: UpdateVacancyPayload,
+): Promise<Vacancy> {
+    const token = getAccessToken();
+
+    const res = await fetch(`${API_URL}/vacancies/${id}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(token || undefined),
+        body: JSON.stringify(data),
+    });
+
+    return handleResponse<Vacancy>(res);
+}
+
+export async function deleteVacancy(id: string): Promise<void> {
+    const token = getAccessToken();
+
+    const res = await fetch(`${API_URL}/vacancies/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(token || undefined),
+    });
+
+    if (!res.ok) {
+        throw new Error('Failed to delete vacancy');
+    }
 }

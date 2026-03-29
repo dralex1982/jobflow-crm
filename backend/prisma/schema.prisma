@@ -18,10 +18,12 @@ enum UserRole {
 }
 
 enum VacancyStatus {
+  SAVED
   APPLIED
+  SCREENING
   INTERVIEW
-  REJECTED
   OFFER
+  REJECTED
 }
 
 model User {
@@ -40,7 +42,7 @@ model Vacancy {
   id        String        @id @default(uuid())
   title     String
   company   String
-  status    VacancyStatus @default(APPLIED)
+  status    VacancyStatus @default(SAVED)
   notes     String?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
