@@ -11,6 +11,7 @@ import {
 import {Vacancy, VacancyStatus} from "@/entities/vacancy/model/vacancy";
 import {VacancyCard} from "@/entities/vacancy/ui/vacancy-card";
 import {CreateVacancyForm} from "@/features/vacancy/create-vacancy-form/create-vacancy-form";
+import VacanciesPage from "@/app/vacancies/page";
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -89,28 +90,7 @@ export default function DashboardPage() {
                 </button>
             </div>
 
-            <CreateVacancyForm onCreate={handleCreateVacancy}/>
-
-            <section className="mt-8 rounded-xl border p-4">
-                <h2 className="text-lg font-semibold">My vacancies</h2>
-
-                {isVacanciesLoading ? (
-                    <p className="mt-4 text-sm text-gray-500">Loading vacancies...</p>
-                ) : vacancies.length === 0 ? (
-                    <p className="mt-4 text-sm text-gray-500">No vacancies yet.</p>
-                ) : (
-                    <ul className="mt-4 space-y-3">
-                        {vacancies.map((vacancy) => (
-                            <VacancyCard
-                                key={vacancy.id}
-                                vacancy={vacancy}
-                                onStatusChange={handleStatusChange}
-                                onDelete={handleDelete}
-                            />
-                        ))}
-                    </ul>
-                )}
-            </section>
+            <VacanciesPage/>
         </main>
     );
 }

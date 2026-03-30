@@ -14,7 +14,7 @@ import {
 import {Vacancy, VacancyStatus} from '@/entities/vacancy/model/vacancy';
 import {VacancyCard} from '@/entities/vacancy/ui/vacancy-card';
 import {CreateVacancyForm} from '@/features/vacancy/create-vacancy-form/create-vacancy-form';
-import { VacanciesToolbar } from '@/features/vacancy/vacancies-toolbar/vacancies-toolbar';
+import {VacanciesToolbar} from '@/features/vacancy/vacancies-toolbar/vacancies-toolbar';
 
 export default function VacanciesPage() {
 
@@ -98,7 +98,7 @@ export default function VacanciesPage() {
 
     const handleChangeStatus = async (id: string, status: VacancyStatus) => {
         try {
-            await updateVacancy(id, { status });
+            await updateVacancy(id, {status});
             await loadVacancies();
         } catch (error) {
             console.error(error);
@@ -115,7 +115,6 @@ export default function VacanciesPage() {
     }
 
 
-
     return (<main className="p-6 space-y-6">
         <div className="flex items-center justify-between">
             <div>
@@ -125,10 +124,20 @@ export default function VacanciesPage() {
                 </p>
             </div>
 
-            <button onClick={logout}>Logout</button>
+            <button onClick={logout} disabled={isVacanciesLoading}>
+                Logout
+            </button>
         </div>
 
-        <CreateVacancyForm onCreate={handleCreateVacancy} />
+        <CreateVacancyForm onCreate={handleCreateVacancy}/>
+
+        <VacanciesToolbar
+            searchValue={searchValue}
+            statusFilter={statusFilter}
+            onSearchChange={setSearchValue}
+            onStatusFilterChange={setStatusFilter}
+            onReset={handleResetFilters}
+        />
 
         {isVacanciesLoading && <div>Loading vacancies...</div>}
 
@@ -145,22 +154,16 @@ export default function VacanciesPage() {
                 <div>No vacancies match current filters</div>
             )}
 
-        <VacanciesToolbar
-            searchValue={searchValue}
-            statusFilter={statusFilter}
-            onSearchChange={setSearchValue}
-            onStatusFilterChange={setStatusFilter}
-            onReset={handleResetFilters}
-        />
-        <div className="space-y-4">
-            {filteredVacancies.map((vacancy) => (
-                <VacancyCard
-                    key={vacancy.id}
-                    vacancy={vacancy}
-                    onDelete={handleDeleteVacancy}
-                    onStatusChange={handleChangeStatus}
-                />
-            ))}
-        </div>
+        {!isVacanciesLoading && !vacanciesError && filteredVacancies.length > 0 &&
+            (<div className="space-y-4">
+                {filteredVacancies.map((vacancy) => (
+                    <VacancyCard
+                        key={vacancy.id}
+                        vacancy={vacancy}
+                        onDelete={handleDeleteVacancy}
+                        onStatusChange={handleChangeStatus}
+                    />
+                ))}
+            </div>)}
     </main>)
 }
