@@ -8,7 +8,7 @@ export interface CreateVacancyPayload {
     notes?: string;
 }
 
-interface UpdateVacancyPayload {
+export interface UpdateVacancyPayload {
     title?: string;
     company?: string;
     notes?: string;
