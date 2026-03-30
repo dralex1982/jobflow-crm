@@ -14,6 +14,7 @@ import {
 import {Vacancy, VacancyStatus} from '@/entities/vacancy/model/vacancy';
 import {VacancyCard} from '@/entities/vacancy/ui/vacancy-card';
 import {CreateVacancyForm} from '@/features/vacancy/create-vacancy-form/create-vacancy-form';
+import { VacanciesToolbar } from '@/features/vacancy/vacancies-toolbar/vacancies-toolbar';
 
 export default function VacanciesPage() {
 
@@ -24,6 +25,25 @@ export default function VacanciesPage() {
     const [vacancies, setVacancies] = useState<Vacancy[]>([]);
     const [isVacanciesLoading, setIsVacanciesLoading] = useState(true);
     const [vacanciesError, setVacanciesError] = useState('');
+
+    const [searchValue, setSearchValue] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+
+    const filteredVacancies = vacancies.filter((vacancy) => {
+        const matchesSearch =
+            vacancy.title.toLowerCase().includes(searchValue.toLowerCase()) ||
+            vacancy.company.toLowerCase().includes(searchValue.toLowerCase());
+
+        const matchesStatus =
+            !statusFilter || vacancy.status === statusFilter;
+
+        return matchesSearch && matchesStatus;
+    });
+
+    const handleResetFilters = () => {
+        setSearchValue('');
+        setStatusFilter('');
+    };
 
     useEffect(() => {
         if (!isLoading && !isAuth) {
@@ -118,8 +138,22 @@ export default function VacanciesPage() {
             <div>No vacancies yet</div>
         )}
 
+        {!isVacanciesLoading &&
+            !vacanciesError &&
+            vacancies.length > 0 &&
+            filteredVacancies.length === 0 && (
+                <div>No vacancies match current filters</div>
+            )}
+
+        <VacanciesToolbar
+            searchValue={searchValue}
+            statusFilter={statusFilter}
+            onSearchChange={setSearchValue}
+            onStatusFilterChange={setStatusFilter}
+            onReset={handleResetFilters}
+        />
         <div className="space-y-4">
-            {vacancies.map((vacancy) => (
+            {filteredVacancies.map((vacancy) => (
                 <VacancyCard
                     key={vacancy.id}
                     vacancy={vacancy}
