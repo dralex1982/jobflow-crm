@@ -15,6 +15,8 @@ import {Vacancy, VacancyStatus} from '@/entities/vacancy/model/vacancy';
 import {VacancyCard} from '@/entities/vacancy/ui/vacancy-card';
 import {CreateVacancyForm} from '@/features/vacancy/create-vacancy-form/create-vacancy-form';
 import {VacanciesToolbar} from '@/features/vacancy/vacancies-toolbar/vacancies-toolbar';
+import {getDashboardStats} from "@/shared/lib/vacancies/get-dashboard-stats";
+import Link from "next/link";
 
 export default function VacanciesPage() {
 
@@ -114,19 +116,21 @@ export default function VacanciesPage() {
         return null;
     }
 
-
     return (<main className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between">
             <div>
                 <h1 className="text-2xl font-bold">Vacancies</h1>
                 <p className="text-sm text-gray-500">
-                    {user?.email ?? 'Authorized user'}
+                    Manage your job applications and pipeline
                 </p>
             </div>
 
-            <button onClick={logout} disabled={isVacanciesLoading}>
-                Logout
-            </button>
+            <Link
+                href="/dashboard"
+                className="rounded-lg border px-4 py-2 text-sm"
+            >
+                Back to dashboard
+            </Link>
         </div>
 
         <CreateVacancyForm onCreate={handleCreateVacancy}/>

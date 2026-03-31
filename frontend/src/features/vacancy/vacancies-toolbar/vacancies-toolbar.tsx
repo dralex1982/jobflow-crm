@@ -34,7 +34,8 @@ export function VacanciesToolbar({
             >
                 <option value="">All statuses</option>
 
-                {vacancyStatuses.map((status: VacancyStatus) => (
+
+                {vacancyStatuses.map((status: string) => (
                     <option key={status} value={status}>
                         {status}
                     </option>

@@ -32,7 +32,7 @@ export function VacancyCard({
                     }
                     className="rounded border px-2 py-1 text-sm"
                 >
-                    {vacancyStatuses.map((status: VacancyStatus) => (
+                    {vacancyStatuses.map((status: string) => (
                         <option key={status} value={status}>
                             {status}
                         </option>

@@ -1,10 +1,11 @@
-export type VacancyStatus =
-    | 'SAVED'
-    | 'APPLIED'
-    | 'SCREENING'
-    | 'INTERVIEW'
-    | 'OFFER'
-    | 'REJECTED';
+export enum VacancyStatus {
+    SAVED = 'SAVED',
+    APPLIED = 'APPLIED',
+    SCREENING = 'SCREENING',
+    INTERVIEW = 'INTERVIEW',
+    OFFER = 'OFFER',
+    REJECTED = 'REJECTED',
+}
 
 export interface Vacancy {
     id: string;

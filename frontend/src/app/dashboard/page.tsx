@@ -9,9 +9,10 @@ import {
     updateVacancy,
 } from "@/shared/api/vacancies";
 import {Vacancy, VacancyStatus} from "@/entities/vacancy/model/vacancy";
-import {VacancyCard} from "@/entities/vacancy/ui/vacancy-card";
-import {CreateVacancyForm} from "@/features/vacancy/create-vacancy-form/create-vacancy-form";
 import VacanciesPage from "@/app/vacancies/page";
+import {getDashboardStats} from "@/shared/lib/vacancies/get-dashboard-stats";
+import {SummaryCards} from "@/widgets/dashboard/summary-cards/summary-cards";
+import {RecentVacancies} from "@/widgets/dashboard/recent-vacancies/recent-vacancies";
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -29,43 +30,39 @@ export default function DashboardPage() {
     }, [isLoading, isAuth, router]);
 
     useEffect(() => {
-        if (!isAuth) {
-            return;
-        }
+        const loadVacancies = async () => {
+            try {
+                setIsVacanciesLoading(true);
+                setVacanciesError('');
 
-        getVacancies()
-            .then((data) => setVacancies(data))
-            .finally(() => setIsVacanciesLoading(false));
-    }, [isAuth]);
+                const data = await getVacancies();
+                setVacancies(data);
+            } catch (error) {
+                console.error(error);
+                setVacanciesError('Failed to load vacancies');
+            } finally {
+                setIsVacanciesLoading(false);
+            }
+        };
+
+        loadVacancies();
+    }, [isLoading, isAuth]);
+
+    const stats = getDashboardStats(vacancies);
+
+    const recentVacancies = [...vacancies]
+        .sort((a, b) => {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        })
+        .slice(0, 5);
 
 
-    async function handleCreateVacancy(data: {
-        title: string;
-        company: string;
-        notes?: string;
-    }) {
-        const newVacancy = await createVacancy(data);
-
-        setVacancies((prev) => [newVacancy, ...prev]);
+    if (isLoading || isVacanciesLoading) {
+        return <div className={"p-6"}>Loading dashboard...</div>;
     }
 
-
-    async function handleStatusChange(id: string, status: VacancyStatus) {
-        const updatedVacancy = await updateVacancy(id, {status});
-
-        setVacancies((prev) =>
-            prev.map((item) => (item.id === id ? updatedVacancy : item)),
-        );
-    }
-
-    async function handleDelete(id: string) {
-        await deleteVacancy(id);
-
-        setVacancies((prev) => prev.filter((item) => item.id !== id));
-    }
-
-    if (isLoading) {
-        return <div className={"p-6"}>Loading...</div>;
+    if (vacanciesError) {
+        return <div>{vacanciesError}</div>;
     }
 
     if (!isAuth) {
@@ -73,24 +70,40 @@ export default function DashboardPage() {
     }
 
     return (
-        <main className="p-6">
+        <div className="space-y-6 p-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold">
-                        Welcome, {user?.firstName ?? user?.email}
-                    </h1>
-                    <p className="mt-1 text-sm text-gray-500">
-                        Here is your job search dashboard
+                    <h1 className="text-2xl font-bold">Dashboard</h1>
+                    <p className="text-sm text-gray-500">
+                        Overview of your job search process
                     </p>
                 </div>
 
-                <button
-                    onClick={logout} className="rounded border px-4 py-2">
-                    Logout
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        className="rounded-lg border px-4 py-2"
+                        onClick={() => router.push('/vacancies')}
+                    >
+                        View all vacancies
+                    </button>
+
+                    <button
+                        className="rounded-lg border px-4 py-2"
+                        onClick={() => router.push('/vacancies')}
+                    >
+                        Add vacancy
+                    </button>
+                </div>
             </div>
 
-            <VacanciesPage/>
-        </main>
+            <SummaryCards
+                total={stats.total}
+                applied={stats.applied}
+                interview={stats.interview}
+                offers={stats.offers}
+            />
+
+            <RecentVacancies vacancies={recentVacancies} />
+        </div>
     );
 }
