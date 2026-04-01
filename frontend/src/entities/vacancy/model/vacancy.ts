@@ -11,7 +11,7 @@ export interface Vacancy {
     id: string;
     title: string;
     company: string;
-    status: string;
+    status: VacancyStatus;
     notes?: string | null;
     createdAt: string;
     updatedAt: string;
