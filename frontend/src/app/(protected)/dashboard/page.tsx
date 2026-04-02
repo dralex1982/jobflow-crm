@@ -9,7 +9,7 @@ import {
     updateVacancy,
 } from "@/shared/api/vacancies";
 import {Vacancy, VacancyStatus} from "@/entities/vacancy/model/vacancy";
-import VacanciesPage from "@/app/vacancies/page";
+import VacanciesPage from "@/app/(protected)/vacancies/page";
 import {getDashboardStats} from "@/shared/lib/vacancies/get-dashboard-stats";
 import {SummaryCards} from "@/widgets/dashboard/summary-cards/summary-cards";
 import {RecentVacancies} from "@/widgets/dashboard/recent-vacancies/recent-vacancies";

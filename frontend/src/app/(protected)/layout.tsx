@@ -1,6 +1,7 @@
-import './globals.css';
+import '../globals.css';
 import {ReactNode} from 'react';
 import {AuthProvider} from '@/app/providers/auth-provider';
+import {Header} from "@/widgets/header/header";
 
 export default function RootLayout({children}: { children: ReactNode }) {
     return (
@@ -8,6 +9,7 @@ export default function RootLayout({children}: { children: ReactNode }) {
         <body>
 
         <AuthProvider>
+            <Header/>
             {children}
         </AuthProvider>
         </body>

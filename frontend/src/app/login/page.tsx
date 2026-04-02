@@ -3,6 +3,7 @@
 import {FormEvent, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import { useAuthStore } from '@/features/auth/model/use-auth-store';
+import Link from "next/link";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -73,6 +74,13 @@ export default function LoginPage() {
                     >
                         {isLoading ? 'Loading...' : 'Login'}
                     </button>
+
+                    <p className="mt-4 text-sm text-gray-500">
+                        No account yet?{' '}
+                        <Link href="/register" className="underline">
+                            Register
+                        </Link>
+                    </p>
                 </form>
             </div>
         </main>
