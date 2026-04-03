@@ -1,8 +1,8 @@
 'use client';
 
 import {VacancyStatus} from '@/entities/vacancy/model/vacancy';
-import {vacancyStatuses} from '@/shared/lib/constants/vacancy-status';
 import {ViewModeSwitcher} from "@/features/vacancy/view-mode-switcher/view-mode-switcher";
+import {VacancyViewMode} from "@/features/vacancy/view-mode-switcher/model/view-mode";
 
 type ViewMode = 'list' | 'board';
 
@@ -12,7 +12,7 @@ type Props = {
     viewMode: ViewMode;
     onSearchChange: (value: string) => void;
     onStatusFilterChange: (value: VacancyStatus | '') => void;
-    onViewModeChange: (value: ViewMode) => void;
+    onViewModeChange: (value: VacancyViewMode) => void;
     onResetFilters: () => void;
 };
 

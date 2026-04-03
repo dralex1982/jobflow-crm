@@ -17,15 +17,21 @@ import {CreateVacancyForm} from '@/features/vacancy/create-vacancy-form/create-v
 import {VacanciesToolbar} from '@/features/vacancy/vacancies-toolbar/vacancies-toolbar';
 import Link from "next/link";
 import {VacanciesBoard} from "@/widgets/vacancies/vacancies-board/vacancies-board";
+import {VacancyViewMode} from "@/features/vacancy/view-mode-switcher/model/view-mode";
+import {getStorageItem, removeStorageItem, setStorageItem} from "@/shared/browser/local-storage";
+import {LOCAL_STORAGE_KEYS} from "@/shared/config/local-storage";
 
 export default function VacanciesPage() {
 
     const [vacancies, setVacancies] = useState<Vacancy[]>([]);
     const [isVacanciesLoading, setIsVacanciesLoading] = useState(true);
     const [vacanciesError, setVacanciesError] = useState('');
+
     const [searchValue, setSearchValue] = useState('');
     const [statusFilter, setStatusFilter] = useState<VacancyStatus | ''>('');
-    const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
+    const [viewMode, setViewMode] = useState<VacancyViewMode>('list');
+
+    const [isHydrated, setIsHydrated] = useState<boolean>(false);
 
     const [moveError, setMoveError] = useState('');
     const [isMoving, setIsMoving] = useState(false);
@@ -37,6 +43,9 @@ export default function VacanciesPage() {
     const handleResetFilters = () => {
         setSearchValue('');
         setStatusFilter('');
+
+        removeStorageItem(LOCAL_STORAGE_KEYS.vacanciesSearchValue);
+        removeStorageItem(LOCAL_STORAGE_KEYS.vacanciesStatusFilter);
     };
 
     useEffect(() => {
@@ -44,6 +53,69 @@ export default function VacanciesPage() {
             router.push('/login');
         }
     }, [isLoading, isAuth, router]);
+
+    useEffect(() => {
+        const savedSearchValue = getStorageItem(
+            LOCAL_STORAGE_KEYS.vacanciesSearchValue,
+        );
+
+        const savedStatusFilter = getStorageItem(
+            LOCAL_STORAGE_KEYS.vacanciesStatusFilter,
+        );
+
+        const savedViewMode = getStorageItem(
+            LOCAL_STORAGE_KEYS.vacanciesViewMode,
+        );
+
+        if (savedSearchValue) {
+            setSearchValue(savedSearchValue);
+        }
+
+        if (
+            savedStatusFilter &&
+            Object.values(VacancyStatus).includes(savedStatusFilter as VacancyStatus)
+        ) {
+            setStatusFilter(savedStatusFilter as VacancyStatus);
+        }
+
+        if (savedViewMode === 'list' || savedViewMode === 'board') {
+            setViewMode(savedViewMode);
+        }
+
+        setIsHydrated(true);
+    }, []);
+
+    useEffect(() => {
+        if (!isHydrated) return;
+
+        setStorageItem(
+            LOCAL_STORAGE_KEYS.vacanciesSearchValue,
+            searchValue,
+        );
+    }, [searchValue, isHydrated]);
+
+    useEffect(() => {
+        if (!isHydrated) return;
+
+        if (statusFilter) {
+            setStorageItem(
+                LOCAL_STORAGE_KEYS.vacanciesStatusFilter,
+                statusFilter,
+            );
+            return;
+        }
+
+        removeStorageItem(LOCAL_STORAGE_KEYS.vacanciesStatusFilter);
+    }, [statusFilter, isHydrated]);
+
+    useEffect(() => {
+        if (!isHydrated) return;
+
+        setStorageItem(
+            LOCAL_STORAGE_KEYS.vacanciesViewMode,
+            viewMode,
+        );
+    }, [viewMode, isHydrated]);
 
     const loadVacancies = async () => {
         try {
@@ -144,7 +216,7 @@ export default function VacanciesPage() {
     };
 
 
-    if (isLoading) {
+    if (isLoading || !isHydrated) {
         return <div>Loading vacancies...</div>;
     }
 
