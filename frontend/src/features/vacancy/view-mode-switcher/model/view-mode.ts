@@ -1,0 +1,1 @@
+export type VacancyViewMode = 'list' | 'board';

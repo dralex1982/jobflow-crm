@@ -1,12 +1,11 @@
 import { Vacancy, VacancyStatus } from '@/entities/vacancy/model/vacancy';
+import { VacancyBoardCard } from '@/entities/vacancy/ui/vacancy-board-card';
 import { groupVacanciesByStatus } from '@/shared/lib/vacancies/group-vacancies-by-status';
-import {VacancyCard} from "@/entities/vacancy/ui/vacancy-card";
-import {VacancyBoardCard} from "@/widgets/vacancies/vacancies-board-card/vacancies-board-card";
 
 type Props = {
     vacancies: Vacancy[];
-    onDelete: (id: string) => Promise<void>;
-    onStatusChange: (id: string, status: VacancyStatus) => Promise<void>;
+    onDelete: (id: string) => void;
+    onStatusChange: (id: string, status: VacancyStatus) => void;
 };
 
 const STATUS_ORDER: VacancyStatus[] = [
@@ -18,47 +17,64 @@ const STATUS_ORDER: VacancyStatus[] = [
     VacancyStatus.REJECTED,
 ];
 
+const STATUS_LABELS: Record<VacancyStatus, string> = {
+    SAVED: 'Saved',
+    APPLIED: 'Applied',
+    SCREENING: 'Screening',
+    INTERVIEW: 'Interview',
+    OFFER: 'Offer',
+    REJECTED: 'Rejected',
+};
+
 export const VacanciesBoard = ({
                                    vacancies,
                                    onDelete,
                                    onStatusChange,
                                }: Props) => {
-    const groupedVacancies = groupVacanciesByStatus(vacancies);
+    const grouped = groupVacanciesByStatus(vacancies);
 
     return (
         <div className="overflow-x-auto scroll-smooth">
-            <div className="flex gap-4 min-w-max">
-                {STATUS_ORDER.map((status) => (
-                    <div
-                        key={status}
-                        className="w-[240px] shrink-0 rounded-xl border bg-gray-50 p-3"
-                    >
-                        <div className="mb-3 flex items-center justify-between">
-                            <h2 className="text-sm font-semibold">{status}</h2>
+            <div className="inline-flex flex-nowrap gap-4 p-1">
+                {STATUS_ORDER.map((status) => {
+                    const items = grouped[status];
 
-                            <span className="rounded-full border px-2 py-0.5 text-xs">
-                {groupedVacancies[status].length}
-              </span>
-                        </div>
+                    return (
+                        <div
+                            key={status}
+                            className="w-[220px] min-w-[220px] shrink-0 rounded-xl border bg-gray-50 p-3"
+                        >
+                            {/* Header */}
+                            <div className="mb-3 flex items-center justify-between">
+                                <h2 className="text-sm font-semibold">
+                                    {STATUS_LABELS[status]}
+                                </h2>
 
-                        <div className="space-y-3">
-                            {groupedVacancies[status].length === 0 ? (
-                                <div className="rounded-lg border border-dashed p-3 text-sm text-gray-500">
-                                    No vacancies
-                                </div>
-                            ) : (
-                                groupedVacancies[status].map((vacancy) => (
-                                    <VacancyBoardCard
-                                        key={vacancy.id}
-                                        vacancy={vacancy}
-                                        onDelete={onDelete}
-                                        onStatusChange={onStatusChange}
-                                    />
-                                ))
-                            )}
+                                <span className="rounded-full border px-2 py-0.5 text-xs">
+                  {items.length}
+                </span>
+                            </div>
+
+                            {/* Content */}
+                            <div className="space-y-3">
+                                {items.length === 0 ? (
+                                    <div className="rounded-lg border border-dashed p-3 text-sm text-gray-500">
+                                        No vacancies
+                                    </div>
+                                ) : (
+                                    items.map((vacancy) => (
+                                        <VacancyBoardCard
+                                            key={vacancy.id}
+                                            vacancy={vacancy}
+                                            onDelete={onDelete}
+                                            onStatusChange={onStatusChange}
+                                        />
+                                    ))
+                                )}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

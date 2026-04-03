@@ -1,8 +1,8 @@
-type ViewMode = 'list' | 'board';
+import {VacancyViewMode} from "@/features/vacancy/view-mode-switcher/model/view-mode";
 
 type Props = {
-    value: ViewMode;
-    onChange: (value: ViewMode) => void;
+    value: VacancyViewMode;
+    onChange: (value: VacancyViewMode) => void;
 };
 
 export const ViewModeSwitcher = ({ value, onChange }: Props) => {

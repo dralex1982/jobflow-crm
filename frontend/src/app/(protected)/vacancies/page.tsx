@@ -15,20 +15,17 @@ import {Vacancy, VacancyStatus} from '@/entities/vacancy/model/vacancy';
 import {VacancyCard} from '@/entities/vacancy/ui/vacancy-card';
 import {CreateVacancyForm} from '@/features/vacancy/create-vacancy-form/create-vacancy-form';
 import {VacanciesToolbar} from '@/features/vacancy/vacancies-toolbar/vacancies-toolbar';
-import {getDashboardStats} from "@/shared/lib/vacancies/get-dashboard-stats";
 import Link from "next/link";
-import {VacancyPipeline} from "@/widgets/vacancy-pipeline/vacancy-pipeline";
-import {groupVacanciesByStatus} from "@/shared/lib/vacancies/group-vacancies-by-status";
+import {VacanciesBoard} from "@/widgets/vacancies/vacancies-board/vacancies-board";
 
 export default function VacanciesPage() {
 
     const [vacancies, setVacancies] = useState<Vacancy[]>([]);
-    const [searchValue, setSearchValue] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
-    const [viewMode, setViewMode] = useState<'list' | 'pipeline'>('list');
-
     const [isVacanciesLoading, setIsVacanciesLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [vacanciesError, setVacanciesError] = useState('');
+    const [searchValue, setSearchValue] = useState('');
+    const [statusFilter, setStatusFilter] = useState<VacancyStatus | ''>('');
+    const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
 
     const [moveError, setMoveError] = useState('');
     const [isMoving, setIsMoving] = useState(false);
@@ -36,18 +33,6 @@ export default function VacanciesPage() {
     const router = useRouter();
 
     const {user, isAuth, isLoading, logout} = useAuthStore();
-    const [vacanciesError, setVacanciesError] = useState('');
-
-    const filteredVacancies = vacancies.filter((vacancy) => {
-        const matchesSearch =
-            vacancy.title.toLowerCase().includes(searchValue.toLowerCase()) ||
-            vacancy.company.toLowerCase().includes(searchValue.toLowerCase());
-
-        const matchesStatus =
-            !statusFilter || vacancy.status === statusFilter;
-
-        return matchesSearch && matchesStatus;
-    });
 
     const handleResetFilters = () => {
         setSearchValue('');
@@ -81,6 +66,17 @@ export default function VacanciesPage() {
         }
     }, [isLoading, isAuth]);
 
+    const filteredVacancies = vacancies.filter((vacancy) => {
+        const matchesSearch =
+            vacancy.title.toLowerCase().includes(searchValue.toLowerCase()) ||
+            vacancy.company.toLowerCase().includes(searchValue.toLowerCase());
+
+        const matchesStatus =
+            !statusFilter || vacancy.status === statusFilter;
+
+        return matchesSearch && matchesStatus;
+    });
+
     const handleCreateVacancy = async (payload: {
         title: string;
         company: string;
@@ -105,7 +101,7 @@ export default function VacanciesPage() {
         }
     };
 
-    const handleChangeStatus = async (id: string, status: VacancyStatus) => {
+    const handleChangeStatusVacancy = async (id: string, status: VacancyStatus) => {
         try {
             await updateVacancy(id, {status});
             await loadVacancies();
@@ -135,7 +131,7 @@ export default function VacanciesPage() {
         );
 
         setVacancies(updatedVacancies);
-        setError('');
+        setVacanciesError('');
         setIsMoving(true);
 
         try {
@@ -143,15 +139,21 @@ export default function VacanciesPage() {
         } catch (e) {
             console.error(e);
             setVacancies(previousVacancies);
-            setError('Failed to move vacancy');
+            setVacanciesError('Failed to move vacancy');
         }
     };
+
+
     if (isLoading) {
-        return <div>Loading auth...</div>;
+        return <div>Loading vacancies...</div>;
     }
 
     if (!isAuth) {
         return null;
+    }
+
+    if (vacanciesError) {
+        return <div className="p-6 text-red-500">{vacanciesError}</div>;
     }
 
     return (
@@ -174,14 +176,12 @@ export default function VacanciesPage() {
             <VacanciesToolbar
                 searchValue={searchValue}
                 statusFilter={statusFilter}
+                viewMode={viewMode}
                 onSearchChange={setSearchValue}
                 onStatusFilterChange={setStatusFilter}
-                onReset={handleResetFilters}
+                onViewModeChange={setViewMode}
+                onResetFilters={handleResetFilters}
             />
-            <div className="flex gap-2">
-                <button onClick={() => setViewMode('list')}>List</button>
-                <button onClick={() => setViewMode('pipeline')}>Pipeline</button>
-            </div>
 
             {isVacanciesLoading && <div>Loading vacancies...</div>}
 
@@ -211,23 +211,27 @@ export default function VacanciesPage() {
             ) : null}
 
 
-            {!isVacanciesLoading && !vacanciesError && filteredVacancies.length > 0 &&
-                (viewMode === 'list' ?
-                    (<div className="space-y-4">
-                        {filteredVacancies.map((vacancy) => (
-                            <VacancyCard
-                                key={vacancy.id}
-                                vacancy={vacancy}
-                                onDelete={handleDeleteVacancy}
-                                onStatusChange={handleChangeStatus}
-                            />
-                        ))}
-                    </div>) : (
-                        <VacancyPipeline
-                            vacancies={filteredVacancies}
-                            onDropVacancy={handleDropVacancy}
-                            isMoving={isMoving}
+            {filteredVacancies.length === 0 ? (
+                <div className="rounded-xl border border-dashed p-6 text-sm text-gray-500">
+                    No vacancies found
+                </div>
+            ) : viewMode === 'list' ? (
+                <div className="space-y-4">
+                    {filteredVacancies.map(vacancy => (
+                        <VacancyCard
+                            key={vacancy.id}
+                            vacancy={vacancy}
+                            onDelete={handleDeleteVacancy}
+                            onStatusChange={handleChangeStatusVacancy}
                         />
                     ))}
+                </div>
+            ) : (
+                <VacanciesBoard
+                    vacancies={filteredVacancies}
+                    onDelete={handleDeleteVacancy}
+                    onStatusChange={handleChangeStatusVacancy}
+                />
+            )}
         </main>)
 }

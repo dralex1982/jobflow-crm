@@ -12,9 +12,9 @@ import {Vacancy, VacancyStatus} from "@/entities/vacancy/model/vacancy";
 import VacanciesPage from "@/app/(protected)/vacancies/page";
 import {getDashboardStats} from "@/shared/lib/vacancies/get-dashboard-stats";
 import {SummaryCards} from "@/widgets/dashboard/summary-cards/summary-cards";
-import {RecentVacancies} from "@/widgets/dashboard/recent-vacancies/recent-vacancies";
+import {RecentVacancies} from "@/widgets/vacancies/recent-vacancies/recent-vacancies";
 import {groupVacanciesByStatus} from "@/shared/lib/vacancies/group-vacancies-by-status";
-import {VacancyPipeline} from "@/widgets/vacancy-pipeline/vacancy-pipeline";
+import {VacancyPipeline} from "@/widgets/vacancies/vacancy-pipeline/vacancy-pipeline";
 
 export default function DashboardPage() {
     const router = useRouter();
