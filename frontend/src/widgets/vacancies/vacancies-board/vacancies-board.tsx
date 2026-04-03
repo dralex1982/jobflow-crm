@@ -1,6 +1,7 @@
 import { Vacancy, VacancyStatus } from '@/entities/vacancy/model/vacancy';
 import { VacancyBoardCard } from '@/entities/vacancy/ui/vacancy-board-card';
 import { groupVacanciesByStatus } from '@/shared/lib/vacancies/group-vacancies-by-status';
+import {VacanciesColumn} from "@/widgets/vacancies/vacancy-pipeline/vacancy-column";
 
 type Props = {
     vacancies: Vacancy[];
@@ -17,65 +18,24 @@ const STATUS_ORDER: VacancyStatus[] = [
     VacancyStatus.REJECTED,
 ];
 
-const STATUS_LABELS: Record<VacancyStatus, string> = {
-    SAVED: 'Saved',
-    APPLIED: 'Applied',
-    SCREENING: 'Screening',
-    INTERVIEW: 'Interview',
-    OFFER: 'Offer',
-    REJECTED: 'Rejected',
-};
-
 export const VacanciesBoard = ({
                                    vacancies,
                                    onDelete,
                                    onStatusChange,
                                }: Props) => {
-    const grouped = groupVacanciesByStatus(vacancies);
+    const groupedVacancies = groupVacanciesByStatus(vacancies);
 
     return (
-        <div className="overflow-x-auto scroll-smooth">
-            <div className="inline-flex flex-nowrap gap-4 p-1">
-                {STATUS_ORDER.map((status) => {
-                    const items = grouped[status];
-
-                    return (
-                        <div
+                <div className="grid auto-cols-[260px] grid-flow-col gap-4">
+                    {STATUS_ORDER.map((status) => (
+                        <VacanciesColumn
                             key={status}
-                            className="w-[220px] min-w-[220px] shrink-0 rounded-xl border bg-gray-50 p-3"
-                        >
-                            {/* Header */}
-                            <div className="mb-3 flex items-center justify-between">
-                                <h2 className="text-sm font-semibold">
-                                    {STATUS_LABELS[status]}
-                                </h2>
-
-                                <span className="rounded-full border px-2 py-0.5 text-xs">
-                  {items.length}
-                </span>
-                            </div>
-
-                            {/* Content */}
-                            <div className="space-y-3">
-                                {items.length === 0 ? (
-                                    <div className="rounded-lg border border-dashed p-3 text-sm text-gray-500">
-                                        No vacancies
-                                    </div>
-                                ) : (
-                                    items.map((vacancy) => (
-                                        <VacancyBoardCard
-                                            key={vacancy.id}
-                                            vacancy={vacancy}
-                                            onDelete={onDelete}
-                                            onStatusChange={onStatusChange}
-                                        />
-                                    ))
-                                )}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
+                            status={status}
+                            vacancies={groupedVacancies[status]}
+                            onDelete={onDelete}
+                            onStatusChange={onStatusChange}
+                        />
+                    ))}
+                </div>
     );
 };

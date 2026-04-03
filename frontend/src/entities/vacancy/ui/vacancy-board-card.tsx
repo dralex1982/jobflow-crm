@@ -1,4 +1,5 @@
 import { Vacancy, VacancyStatus } from '@/entities/vacancy/model/vacancy';
+import { StatusBadge } from '@/entities/vacancy/ui/status-badge';
 
 type Props = {
     vacancy: Vacancy;
@@ -12,23 +13,19 @@ export const VacancyBoardCard = ({
                                      onStatusChange,
                                  }: Props) => {
     return (
-        <div className="rounded-lg border bg-white p-2 shadow-sm hover:shadow-md transition">
-            {/* Title */}
-            <div className="text-sm font-medium line-clamp-2">
-                {vacancy.title}
+        <article className="space-y-3 rounded-xl border bg-white p-3 shadow-sm">
+            <div className="space-y-1">
+                <h3 className="text-sm font-semibold leading-5">{vacancy.title}</h3>
+                <p className="text-sm text-gray-500">{vacancy.company}</p>
             </div>
 
-            {/* Company */}
-            <div className="mb-2 text-xs text-gray-500 truncate">
-                {vacancy.company}
-            </div>
+            <StatusBadge status={vacancy.status} />
 
-            {/* Status select */}
             <select
-                className="text-[10px] text-gray-400 mb-1"
+                className="w-full rounded-lg border px-3 py-2 text-sm"
                 value={vacancy.status}
-                onChange={(e) =>
-                    onStatusChange(vacancy.id, e.target.value as VacancyStatus)
+                onChange={(event) =>
+                    onStatusChange(vacancy.id, event.target.value as VacancyStatus)
                 }
             >
                 {Object.values(VacancyStatus).map((status) => (
@@ -38,13 +35,12 @@ export const VacancyBoardCard = ({
                 ))}
             </select>
 
-            {/* Delete */}
             <button
-                className="w-full rounded-md border px-2 py-1 text-xs hover:bg-gray-50"
+                className="w-full rounded-lg border px-3 py-2 text-sm"
                 onClick={() => onDelete(vacancy.id)}
             >
                 Delete
             </button>
-        </div>
+        </article>
     );
 };

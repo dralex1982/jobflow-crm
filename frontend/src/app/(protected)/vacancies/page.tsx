@@ -33,6 +33,8 @@ export default function VacanciesPage() {
 
     const [isHydrated, setIsHydrated] = useState<boolean>(false);
 
+    const isFiltered = Boolean(searchValue || statusFilter);
+
     const [moveError, setMoveError] = useState('');
     const [isMoving, setIsMoving] = useState(false);
 
@@ -255,6 +257,16 @@ export default function VacanciesPage() {
                 onResetFilters={handleResetFilters}
             />
 
+            <div className="flex items-center justify-between rounded-lg border bg-gray-50 px-4 py-2 text-sm text-gray-600">
+                <span>
+                    {isFiltered
+                        ? `Showing ${filteredVacancies.length} of ${vacancies.length} vacancies`
+                        : `${vacancies.length} vacancies`}
+                </span>
+
+                <span>{viewMode === 'board' ? 'Board view' : 'List view'}</span>
+            </div>
+
             {isVacanciesLoading && <div>Loading vacancies...</div>}
 
             {vacanciesError && <div>{vacanciesError}</div>}
@@ -299,11 +311,16 @@ export default function VacanciesPage() {
                     ))}
                 </div>
             ) : (
-                <VacanciesBoard
-                    vacancies={filteredVacancies}
-                    onDelete={handleDeleteVacancy}
-                    onStatusChange={handleChangeStatusVacancy}
-                />
+                <div className="h-[calc(100vh-220px)] overflow-auto">
+                    <div className="h-[calc(100vh-220px)] overflow-x-auto">
+                        <VacanciesBoard
+                            vacancies={filteredVacancies}
+                            onDelete={handleDeleteVacancy}
+                            onStatusChange={handleChangeStatusVacancy}
+                        />
+                    </div>
+                </div>
+
             )}
         </main>)
 }

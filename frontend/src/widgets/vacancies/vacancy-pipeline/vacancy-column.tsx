@@ -1,71 +1,48 @@
 import { Vacancy, VacancyStatus } from '@/entities/vacancy/model/vacancy';
-import { VacancyKanbanCard } from '@/entities/vacancy/ui/vacancy-kanban-card';
-import {useState} from "react";
+import { VacancyBoardCard } from '@/entities/vacancy/ui/vacancy-board-card';
+import { VACANCY_STATUS_LABELS } from '@/entities/vacancy/model/vacancy-status-config';
 
 type Props = {
-    title: string;
     status: VacancyStatus;
     vacancies: Vacancy[];
-    onDropVacancy: (vacancyId: string, nextStatus: VacancyStatus) => void;
-    isMoving?: boolean;
+    onDelete: (id: string) => void;
+    onStatusChange: (id: string, status: VacancyStatus) => void;
 };
 
-export const VacancyColumn = ({
-                                  title,
-                                  status,
-                                  vacancies,
-                                  onDropVacancy,
-                                  isMoving = false,
-                              }: Props) => {
-
-    const [isOver, setIsOver] = useState(false);
-
-    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-    };
-
-    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        setIsOver(true);
-    };
-
-    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        setIsOver(false);
-    };
-
-    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-
-        const vacancyId = e.dataTransfer.getData('vacancyId');
-        setIsOver(false);
-
-        if (!vacancyId || isMoving) return;
-
-        onDropVacancy(vacancyId, status);
-    };
-
-
+export const VacanciesColumn = ({
+                                    status,
+                                    vacancies,
+                                    onDelete,
+                                    onStatusChange,
+                                }: Props) => {
     return (
-        <div
-            onDragOver={handleDragOver}
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className="min-h-[150px] rounded-xl border p-4"
-        >
-            <div className="mb-4 text-sm font-semibold text-gray-500">
-                {title} ({vacancies.length})
+        <section className="flex min-h-[500px] flex-col rounded-2xl border bg-gray-50 p-3">
+            <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-700">
+                    {VACANCY_STATUS_LABELS[status]}
+                </h2>
+
+                <span className="rounded-full border bg-white px-2.5 py-1 text-xs font-medium">
+          {vacancies.length}
+        </span>
             </div>
 
-            <div className="space-y-3">
-                {vacancies.map(vacancy => (
-                    <VacancyKanbanCard
-                        key={vacancy.id}
-                        vacancy={vacancy}
-                        isDisabled={isMoving} />
-                ))}
-            </div>
-        </div>
+            {vacancies.length === 0 ? (
+                <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed bg-white/70 p-4 text-center text-sm text-gray-400">
+                    No vacancies in this status
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {vacancies.map((vacancy) => (
+                        <VacancyBoardCard
+                            key={vacancy.id}
+                            vacancy={vacancy}
+                            onDelete={onDelete}
+                            onStatusChange={onStatusChange}
+                        />
+                    ))}
+                </div>
+            )}
+        </section>
     );
 };
