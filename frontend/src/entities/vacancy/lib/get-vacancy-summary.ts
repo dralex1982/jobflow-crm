@@ -1,13 +1,6 @@
 import { Vacancy, VacancyStatus } from '@/entities/vacancy/model/vacancy';
 
-export type DashboardStats = {
-    total: number;
-    applied: number;
-    interview: number;
-    offers: number;
-};
-
-export const getDashboardStats = (vacancies: Vacancy[]): DashboardStats => {
+export const getVacancySummary = (vacancies: Vacancy[]) => {
     return {
         total: vacancies.length,
         applied: vacancies.filter(

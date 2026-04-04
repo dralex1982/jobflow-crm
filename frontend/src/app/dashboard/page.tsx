@@ -1,20 +1,13 @@
 'use client';
 import {useRouter} from 'next/navigation';
 import {useAuthStore} from "@/features/auth/model/use-auth-store";
-import {useEffect, useState} from "react";
-import {
-    createVacancy,
-    deleteVacancy,
-    getVacancies,
-    updateVacancy,
-} from "@/shared/api/vacancies";
-import {Vacancy, VacancyStatus} from "@/entities/vacancy/model/vacancy";
-import VacanciesPage from "@/app/vacancies/page";
-import {getDashboardStats} from "@/shared/lib/vacancies/get-dashboard-stats";
+import {useEffect, useMemo, useState} from "react";
+import {getVacancies} from "@/shared/api/vacancies";
+import {Vacancy} from "@/entities/vacancy/model/vacancy";
 import {SummaryCards} from "@/widgets/dashboard/summary-cards/summary-cards";
-import {RecentVacancies} from "@/widgets/vacancies/recent-vacancies/recent-vacancies";
-import {groupVacanciesByStatus} from "@/shared/lib/vacancies/group-vacancies-by-status";
-import {VacancyPipeline} from "@/widgets/vacancies/vacancy-pipeline/vacancy-pipeline";
+import {RecentVacancies} from "@/widgets/dashboard/recent-vacancies/recent-vacancies";
+import {getVacancySummary} from "@/entities/vacancy/lib/get-vacancy-summary";
+
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -24,6 +17,9 @@ export default function DashboardPage() {
     const [vacancies, setVacancies] = useState<Vacancy[]>([]);
     const [isVacanciesLoading, setIsVacanciesLoading] = useState(true);
     const [vacanciesError, setVacanciesError] = useState('');
+
+
+    const summary = useMemo(() => getVacancySummary(vacancies), [vacancies]);
 
     useEffect(() => {
         if (!isLoading && !isAuth) {
@@ -50,7 +46,7 @@ export default function DashboardPage() {
         loadVacancies();
     }, [isLoading, isAuth]);
 
-    const stats = getDashboardStats(vacancies);
+    const stats = getVacancySummary(vacancies);
 
     const recentVacancies = [...vacancies]
         .sort((a, b) => {
@@ -102,12 +98,7 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            <SummaryCards
-                total={stats.total}
-                applied={stats.applied}
-                interview={stats.interview}
-                offers={stats.offers}
-            />
+            <SummaryCards summary={summary}/>
 
             <RecentVacancies vacancies={recentVacancies} />
         </div>

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Vacancy, VacancyStatus } from '@/entities/vacancy/model/vacancy';
-import { VacancyColumn } from './vacancy-column';
+
 import { groupVacanciesByStatus } from '@/shared/lib/vacancies/group-vacancies-by-status';
 
 type Props = {
@@ -10,6 +10,16 @@ type Props = {
     onDropVacancy: (vacancyId: string, nextStatus:VacancyStatus) => void;
     isMoving?: boolean;
 };
+
+function VacancyColumn(props: {
+    title: string,
+    status: VacancyStatus,
+    vacancies: Vacancy[],
+    onDropVacancy: (vacancyId: string, nextStatus: VacancyStatus) => void,
+    isMoving: boolean | undefined
+}) {
+    return null;
+}
 
 export const VacancyPipeline = ({
                                     vacancies,
