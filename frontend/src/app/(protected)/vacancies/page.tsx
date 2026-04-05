@@ -1,9 +1,6 @@
 'use client';
 
 import {useEffect, useMemo, useState} from 'react';
-import {useRouter} from 'next/navigation';
-
-import {useAuthStore} from '@/features/auth/model/use-auth-store';
 import {
     createVacancy,
     deleteVacancy,
@@ -20,6 +17,9 @@ import {VacanciesBoard} from "@/widgets/vacancies/vacancies-board/vacancies-boar
 import {VacancyViewMode} from "@/features/vacancy/view-mode-switcher/model/view-mode";
 import {getStorageItem, removeStorageItem, setStorageItem} from "@/shared/browser/local-storage";
 import {LOCAL_STORAGE_KEYS} from "@/shared/config/local-storage";
+import {ErrorMessage} from "@/shared/ui/error-message/error-message";
+import {PageLoader} from "@/shared/ui/page-loader/page-loader";
+import {EmptyState} from "@/shared/ui/empty-state/empty-state";
 
 export default function VacanciesPage() {
 
@@ -35,12 +35,42 @@ export default function VacanciesPage() {
 
     const isFiltered = Boolean(searchValue || statusFilter);
 
-    const [moveError, setMoveError] = useState('');
+    const [moveError] = useState('');
     const [isMoving, setIsMoving] = useState(false);
 
-    const router = useRouter();
+    const [actionError, setActionError] = useState('');
 
-    const {user, isAuth, isLoading, logout} = useAuthStore();
+    const loadVacancies = async () => {
+        try {
+            setIsVacanciesLoading(true);
+            setVacanciesError('');
+
+            const data = await getVacancies();
+            setVacancies(data);
+        } catch (error) {
+            console.error(error);
+            setVacanciesError('Failed to load vacancies');
+        } finally {
+            setIsVacanciesLoading(false);
+        }
+    };
+
+    const filteredVacancies = useMemo(() => {
+        return vacancies.filter((vacancy) => {
+            const matchesSearch =
+                vacancy.title.toLowerCase().includes(searchValue.toLowerCase()) ||
+                vacancy.company.toLowerCase().includes(searchValue.toLowerCase());
+
+            const matchesStatus =
+                !statusFilter || vacancy.status === statusFilter;
+
+            return matchesSearch && matchesStatus;
+        });
+    }, [vacancies, searchValue, statusFilter]);
+
+    useEffect(() => {
+        loadVacancies();
+    }, []);
 
     const handleResetFilters = () => {
         setSearchValue('');
@@ -49,12 +79,6 @@ export default function VacanciesPage() {
         removeStorageItem(LOCAL_STORAGE_KEYS.vacanciesSearchValue);
         removeStorageItem(LOCAL_STORAGE_KEYS.vacanciesStatusFilter);
     };
-
-    useEffect(() => {
-        if (!isLoading && !isAuth) {
-            router.push('/login');
-        }
-    }, [isLoading, isAuth, router]);
 
     useEffect(() => {
         const savedSearchValue = getStorageItem(
@@ -99,57 +123,11 @@ export default function VacanciesPage() {
     useEffect(() => {
         if (!isHydrated) return;
 
-        if (statusFilter) {
-            setStorageItem(
-                LOCAL_STORAGE_KEYS.vacanciesStatusFilter,
-                statusFilter,
-            );
-            return;
-        }
-
-        removeStorageItem(LOCAL_STORAGE_KEYS.vacanciesStatusFilter);
-    }, [statusFilter, isHydrated]);
-
-    useEffect(() => {
-        if (!isHydrated) return;
-
         setStorageItem(
             LOCAL_STORAGE_KEYS.vacanciesViewMode,
             viewMode,
         );
     }, [viewMode, isHydrated]);
-
-    const loadVacancies = async () => {
-        try {
-            setIsVacanciesLoading(true);
-            setVacanciesError('');
-
-            const data = await getVacancies();
-            setVacancies(data);
-        } catch (error) {
-            console.error(error);
-            setVacanciesError('Failed to load vacancies');
-        } finally {
-            setIsVacanciesLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (!isLoading && isAuth) {
-            loadVacancies();
-        }
-    }, [isLoading, isAuth]);
-
-    const filteredVacancies = vacancies.filter((vacancy) => {
-        const matchesSearch =
-            vacancy.title.toLowerCase().includes(searchValue.toLowerCase()) ||
-            vacancy.company.toLowerCase().includes(searchValue.toLowerCase());
-
-        const matchesStatus =
-            !statusFilter || vacancy.status === statusFilter;
-
-        return matchesSearch && matchesStatus;
-    });
 
     const handleCreateVacancy = async (payload: {
         title: string;
@@ -161,7 +139,9 @@ export default function VacanciesPage() {
             await loadVacancies();
         } catch (error) {
             console.error(error);
-            alert('Failed to create vacancy');
+            setActionError(
+                error instanceof Error ? error.message : 'Failed to create vacancy',
+            );
         }
     };
 
@@ -171,20 +151,30 @@ export default function VacanciesPage() {
             await loadVacancies();
         } catch (error) {
             console.error(error);
-            alert('Failed to delete vacancy');
+            setActionError(
+                error instanceof Error ? error.message : 'Failed to delete vacancy',
+            );
         }
     };
 
     const handleChangeStatusVacancy = async (id: string, status: VacancyStatus) => {
         try {
-            await updateVacancy(id, {status});
-            await loadVacancies();
+            setActionError('');
+
+            const updatedVacancy = await updateVacancy(id, {status});
+
+            setVacancies((prev) =>
+                prev.map((vacancy) =>
+                    vacancy.id === id ? updatedVacancy : vacancy,
+                ),
+            );
         } catch (error) {
             console.error(error);
-            alert('Failed to update vacancy status');
+            setActionError(
+                error instanceof Error ? error.message : 'Failed to update vacancy status',
+            );
         }
     };
-
 
     const handleDropVacancy = async (
         vacancyId: string,
@@ -201,7 +191,7 @@ export default function VacanciesPage() {
         const previousVacancies = vacancies;
 
         const updatedVacancies = vacancies.map(v =>
-            v.id === vacancyId ? { ...v, status: nextStatus } : v,
+            v.id === vacancyId ? {...v, status: nextStatus} : v,
         );
 
         setVacancies(updatedVacancies);
@@ -209,26 +199,21 @@ export default function VacanciesPage() {
         setIsMoving(true);
 
         try {
-            await updateVacancy(vacancyId, { status: nextStatus });
-        } catch (e) {
-            console.error(e);
+            await updateVacancy(vacancyId, {status: nextStatus});
+        } catch (error) {
+            console.error(error);
             setVacancies(previousVacancies);
-            setVacanciesError('Failed to move vacancy');
+            setActionError(
+                error instanceof Error ? error.message : 'Failed to move vacancy',
+            );
         }
     };
 
 
-    if (isLoading || !isHydrated) {
-        return <div>Loading vacancies...</div>;
+    if (isVacanciesLoading || !isHydrated) {
+        return <PageLoader text={"Loading vacancies..."}/>
     }
 
-    if (!isAuth) {
-        return null;
-    }
-
-    if (vacanciesError) {
-        return <div className="p-6 text-red-500">{vacanciesError}</div>;
-    }
 
     return (
         <main className="p-6 space-y-6">
@@ -257,7 +242,8 @@ export default function VacanciesPage() {
                 onResetFilters={handleResetFilters}
             />
 
-            <div className="flex items-center justify-between rounded-lg border bg-gray-50 px-4 py-2 text-sm text-gray-600">
+            <div
+                className="flex items-center justify-between rounded-lg border bg-gray-50 px-4 py-2 text-sm text-gray-600">
                 <span>
                     {isFiltered
                         ? `Showing ${filteredVacancies.length} of ${vacancies.length} vacancies`
@@ -267,38 +253,33 @@ export default function VacanciesPage() {
                 <span>{viewMode === 'board' ? 'Board view' : 'List view'}</span>
             </div>
 
-            {isVacanciesLoading && <div>Loading vacancies...</div>}
-
-            {vacanciesError && <div>{vacanciesError}</div>}
+            {vacanciesError && <ErrorMessage message={vacanciesError}/>}
 
             {!isVacanciesLoading && !vacanciesError && vacancies.length === 0 && (
-                <div>No vacancies yet</div>
+                <EmptyState title={"No vacancies yet"}/>
             )}
 
             {!isVacanciesLoading &&
                 !vacanciesError &&
                 vacancies.length > 0 &&
                 filteredVacancies.length === 0 && (
-                    <div>No vacancies match current filters</div>
+                    <EmptyState
+                        title={"No vacancies match current filters"}
+                        description={"Create your first vacancy to start tracking your pipeline."
+                        }/>
                 )}
 
-            {moveError ? (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-                    {moveError}
-                </div>
-            ) : null}
+            {moveError ? <ErrorMessage message={moveError}/> : null}
 
-            {isMoving ? (
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
-                    Updating vacancy status...
-                </div>
-            ) : null}
+            {isMoving ? <PageLoader text={"Updating vacancy status..."}/> : null}
 
+            {actionError ? <ErrorMessage message={actionError}/> : null}
 
             {filteredVacancies.length === 0 ? (
-                <div className="rounded-xl border border-dashed p-6 text-sm text-gray-500">
-                    No vacancies found
-                </div>
+                <EmptyState
+                    title="No vacancies match current filters"
+                    description="Try changing search or status filters."
+                />
             ) : viewMode === 'list' ? (
                 <div className="space-y-4">
                     {filteredVacancies.map(vacancy => (

@@ -1,18 +1,15 @@
 'use client';
-import {useRouter} from 'next/navigation';
-import {useAuthStore} from "@/features/auth/model/use-auth-store";
+
 import {useEffect, useMemo, useState} from "react";
 import {getVacancies} from "@/shared/api/vacancies";
 import {Vacancy} from "@/entities/vacancy/model/vacancy";
 import {SummaryCards} from "@/widgets/dashboard/summary-cards/summary-cards";
 import {RecentVacancies} from "@/widgets/dashboard/recent-vacancies/recent-vacancies";
 import {getVacancySummary} from "@/entities/vacancy/lib/get-vacancy-summary";
+import {router} from "next/client";
 
 
 export default function DashboardPage() {
-    const router = useRouter();
-
-    const {user, isAuth, isLoading, logout} = useAuthStore();
 
     const [vacancies, setVacancies] = useState<Vacancy[]>([]);
     const [isVacanciesLoading, setIsVacanciesLoading] = useState(true);
@@ -22,18 +19,13 @@ export default function DashboardPage() {
     const summary = useMemo(() => getVacancySummary(vacancies), [vacancies]);
 
     useEffect(() => {
-        if (!isLoading && !isAuth) {
-            router.replace('/login');
-        }
-    }, [isLoading, isAuth, router]);
-
-    useEffect(() => {
         const loadVacancies = async () => {
             try {
                 setIsVacanciesLoading(true);
                 setVacanciesError('');
-
                 const data = await getVacancies();
+
+                console.log(data);
                 setVacancies(data);
             } catch (error) {
                 console.error(error);
@@ -44,7 +36,7 @@ export default function DashboardPage() {
         };
 
         loadVacancies();
-    }, [isLoading, isAuth]);
+    }, []);
 
     const stats = getVacancySummary(vacancies);
 
@@ -55,17 +47,10 @@ export default function DashboardPage() {
         .slice(0, 5);
 
 
-    if (isLoading || isVacanciesLoading) {
-        return <div className={"p-6"}>Loading dashboard...</div>;
-    }
-
     if (vacanciesError) {
         return <div>{vacanciesError}</div>;
     }
 
-    if (!isAuth) {
-        return null;
-    }
 
     return (
         <div className="space-y-6 p-6">

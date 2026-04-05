@@ -23,8 +23,24 @@ export class AuthService {
             lastName: dto.lastName,
         });
 
-        const { passwordHash: _, ...safeUser } = user;
-        return safeUser;
+        const payload = {
+            sub: user.id,
+            email: user.email,
+            role: user.role,
+        };
+
+        const accessToken = await this.jwtService.signAsync(payload);
+
+        return {
+            accessToken,
+            user: {
+                id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role,
+            },
+        };
     }
 
     async login(dto: LoginDto) {

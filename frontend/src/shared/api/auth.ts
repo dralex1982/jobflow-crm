@@ -25,6 +25,11 @@ export interface LoginResponse {
     user: AuthUser;
 }
 
+export interface AuthResponse {
+    accessToken: string;
+    user: AuthUser;
+}
+
 export async function login(data: LoginRequest): Promise<LoginResponse> {
     const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -39,7 +44,7 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
     return res.json();
 }
 
-export async function register(data: RegisterRequest): Promise<void> {
+export async function register(data: RegisterRequest): Promise<AuthResponse> {
     const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: getAuthHeaders(),

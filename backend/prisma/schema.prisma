@@ -35,10 +35,10 @@ model User {
   role         UserRole  @default(USER)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-  Vacancy      Vacancy[]
+  Types      Vacancy[]
 }
 
-model Vacancy {
+model Types {
   id        String        @id @default(uuid())
   title     String
   company   String

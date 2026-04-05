@@ -40,7 +40,7 @@ class VacanciesService {
         });
 
         if (!vacancy) {
-            throw new NotFoundException('Vacancy not found');
+            throw new NotFoundException('Types not found');
         }
 
         return this.prisma.vacancy.update({
@@ -73,7 +73,7 @@ class VacanciesService {
         });
 
         if (!vacancy) {
-            throw new NotFoundException('Vacancy not found');
+            throw new NotFoundException('Types not found');
         }
 
         await this.prisma.vacancy.delete({

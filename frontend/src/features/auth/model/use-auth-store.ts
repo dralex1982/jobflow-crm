@@ -1,63 +1,104 @@
-'use client';
-
 import { create } from 'zustand';
-import { login, getMe, AuthUser } from '@/shared/api/auth';
-import {
-    getAccessToken,
-    setAccessToken,
-    removeAccessToken,
-} from '@/shared/lib/auth-token';
+import {AuthUser, getMe, login, register} from '@/shared/api/auth';
+import {removeAccessToken, setAccessToken} from "@/shared/lib/auth-token";
 
 interface AuthState {
     user: AuthUser | null;
+    token: string | null;
     isAuth: boolean;
-    isLoading: boolean;
+    isInitialized: boolean;
 
-    initAuth: () => Promise<void>;
     login: (email: string, password: string) => Promise<void>;
+    register: (
+        email: string,
+        password: string,
+        firstName?: string,
+        lastName?: string,
+    ) => Promise<void>;
     logout: () => void;
+    initAuth: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
     user: null,
+    token: null,
     isAuth: false,
-    isLoading: true,
-
-    async initAuth() {
-        const token = getAccessToken();
-
-        if (!token) {
-            set({ isLoading: false, isAuth: false });
-            return;
-        }
-
-        try {
-            const user = await getMe(token);
-            set({ user, isAuth: true });
-        } catch {
-            removeAccessToken();
-            set({ user: null, isAuth: false });
-        } finally {
-            set({ isLoading: false });
-        }
-    },
+    isInitialized: false,
 
     async login(email, password) {
-        const response = await login({ email, password });
+        const res = await login({ email, password });
 
-        setAccessToken(response.accessToken);
+        setAccessToken(res.accessToken)
 
         set({
-            user: response.user,
+            user: res.user,
+            token: res.accessToken,
             isAuth: true,
+            isInitialized: true,
+        });
+    },
+
+    async register(email, password, firstName, lastName) {
+        const res = await register({
+            email,
+            password,
+            firstName,
+            lastName,
+        });
+
+        setAccessToken(res.accessToken)
+
+        set({
+            user: res.user,
+            token: res.accessToken,
+            isAuth: true,
+            isInitialized: true,
         });
     },
 
     logout() {
-        removeAccessToken();
+
+        removeAccessToken()
+
         set({
             user: null,
+            token: null,
             isAuth: false,
+            isInitialized: true,
         });
+    },
+
+    async initAuth() {
+        try {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                set({
+                    user: null,
+                    token: null,
+                    isAuth: false,
+                    isInitialized: true,
+                });
+                return;
+            }
+
+            const user = await getMe(token);
+
+            set({
+                user,
+                token,
+                isAuth: true,
+                isInitialized: true,
+            });
+        } catch {
+            localStorage.removeItem('token');
+
+            set({
+                user: null,
+                token: null,
+                isAuth: false,
+                isInitialized: true,
+            });
+        }
     },
 }));
