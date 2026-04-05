@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import {AuthUser, getMe, login, register} from '@/shared/api/auth';
+import { getMe, login, register} from '@/shared/api/auth';
 import {removeAccessToken, setAccessToken} from "@/shared/lib/auth-token";
+import {AuthUser, LoginRequest, RegisterRequest} from "@/shared/api/auth.types";
 
 interface AuthState {
     user: AuthUser | null;
@@ -8,13 +9,8 @@ interface AuthState {
     isAuth: boolean;
     isInitialized: boolean;
 
-    login: (email: string, password: string) => Promise<void>;
-    register: (
-        email: string,
-        password: string,
-        firstName?: string,
-        lastName?: string,
-    ) => Promise<void>;
+    login: (data: LoginRequest) => Promise<void>;
+    register: (data: RegisterRequest) => Promise<void>;
     logout: () => void;
     initAuth: () => Promise<void>;
 }
@@ -25,8 +21,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     isAuth: false,
     isInitialized: false,
 
-    async login(email, password) {
-        const res = await login({ email, password });
+    async login(data: LoginRequest) {
+        const res = await login(data);
 
         setAccessToken(res.accessToken)
 
@@ -38,13 +34,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         });
     },
 
-    async register(email, password, firstName, lastName) {
-        const res = await register({
-            email,
-            password,
-            firstName,
-            lastName,
-        });
+    async register(data: RegisterRequest) {
+        const res = await register(data);
 
         setAccessToken(res.accessToken)
 
@@ -82,7 +73,7 @@ export const useAuthStore = create<AuthState>((set) => ({
                 return;
             }
 
-            const user = await getMe(token);
+            const user = await getMe();
 
             set({
                 user,
