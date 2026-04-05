@@ -7,7 +7,7 @@ import { ErrorMessage } from '@/shared/ui/error-message/error-message';
 import { EmptyState } from '@/shared/ui/empty-state/empty-state';
 import {SummaryCards} from "@/widgets/dashboard/summary-cards/summary-cards";
 import {RecentVacancies} from "@/widgets/dashboard/recent-vacancies/recent-vacancies";
-import {useDashboardPage} from "@/features/auth/model/use-dashboard-page";
+import {useDashboardPage} from "@/features/dashboard/model/use-dashboard-page";
 import {PageShell} from "@/shared/ui/page-shell/page-shell";
 import {PageHeader} from "@/shared/ui/page-header/page-header";
 

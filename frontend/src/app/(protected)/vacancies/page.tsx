@@ -8,7 +8,7 @@ import {VacanciesBoard} from "@/widgets/vacancies/vacancies-board/vacancies-boar
 import {ErrorMessage} from "@/shared/ui/error-message/error-message";
 import {PageLoader} from "@/shared/ui/page-loader/page-loader";
 import {EmptyState} from "@/shared/ui/empty-state/empty-state";
-import {useVacanciesPage} from "@/features/auth/model/use-vacancies-page";
+import {useVacanciesPage} from "@/features/vacancy/model/use-vacancies-page";
 import {PageShell} from "@/shared/ui/page-shell/page-shell";
 import {PageHeader} from "@/shared/ui/page-header/page-header";
 
@@ -79,27 +79,15 @@ export default function VacanciesPage() {
                 <span>{viewMode === 'board' ? 'Board view' : 'List view'}</span>
             </div>
 
-            {vacanciesError && <ErrorMessage message={vacanciesError}/>}
-
-            {!isVacanciesLoading && !vacanciesError && vacancies.length === 0 && (
-                <EmptyState title={"No vacancies yet"}/>
-            )}
-
-            {!isVacanciesLoading &&
-                !vacanciesError &&
-                vacancies.length > 0 &&
-                filteredVacancies.length === 0 && (
-                    <EmptyState
-                        title={"No vacancies match current filters"}
-                        description={"Create your first vacancy to start tracking your pipeline."
-                        }/>
-                )}
-
+            {actionError ? <ErrorMessage message={actionError}/> : null}
             {isMoving ? <PageLoader text={"Updating vacancy status..."}/> : null}
 
-            {actionError ? <ErrorMessage message={actionError}/> : null}
-
-            {filteredVacancies.length === 0 ? (
+            {vacancies.length === 0 ? (
+                <EmptyState
+                    title="No vacancies yet"
+                    description="Create your first vacancy to start tracking your pipeline."
+                />
+            ) : filteredVacancies.length === 0 ? (
                 <EmptyState
                     title="No vacancies match current filters"
                     description="Try changing search or status filters."
@@ -116,16 +104,13 @@ export default function VacanciesPage() {
                     ))}
                 </div>
             ) : (
-                <div className="h-[calc(100vh-220px)] overflow-auto">
-                    <div className="h-[calc(100vh-220px)] overflow-x-auto">
-                        <VacanciesBoard
-                            vacancies={filteredVacancies}
-                            onDelete={handleDeleteVacancy}
-                            onStatusChange={handleChangeStatusVacancy}
-                        />
-                    </div>
+                <div className="h-[calc(100vh-220px)] overflow-x-auto">
+                    <VacanciesBoard
+                        vacancies={filteredVacancies}
+                        onDelete={handleDeleteVacancy}
+                        onStatusChange={handleChangeStatusVacancy}
+                    />
                 </div>
-
             )}
         </PageShell>)
 }

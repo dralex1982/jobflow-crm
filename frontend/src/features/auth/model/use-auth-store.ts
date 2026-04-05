@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { getMe, login, register} from '@/shared/api/auth';
-import {removeAccessToken, setAccessToken} from "@/shared/lib/auth-token";
+import {getAccessToken, removeAccessToken, setAccessToken} from "@/shared/lib/auth-token";
 import {AuthUser, LoginRequest, RegisterRequest} from "@/shared/api/auth.types";
 
 interface AuthState {
@@ -61,7 +61,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     async initAuth() {
         try {
-            const token = localStorage.getItem('token');
+            const token = getAccessToken();
 
             if (!token) {
                 set({
@@ -82,7 +82,7 @@ export const useAuthStore = create<AuthState>((set) => ({
                 isInitialized: true,
             });
         } catch {
-            localStorage.removeItem('token');
+            removeAccessToken();
 
             set({
                 user: null,
