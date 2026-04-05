@@ -139,8 +139,10 @@ export function useVacanciesPage() {
     const handleCreateVacancy = async (payload: CreateVacancyRequest) => {
         try {
             setActionError('');
-            await createVacancy(payload);
-            await loadVacancies();
+            const created = await createVacancy(payload);
+
+            setVacancies(prev => [created, ...prev]);
+
         } catch (error) {
             console.error(error);
             setActionError(
@@ -153,7 +155,10 @@ export function useVacanciesPage() {
         try {
             setActionError('');
             await deleteVacancy(id);
-            await loadVacancies();
+
+            setVacancies(prev =>
+                prev.filter(v => v.id !== id)
+            );
         } catch (error) {
             console.error(error);
             setActionError(
@@ -166,12 +171,19 @@ export function useVacanciesPage() {
         id: string,
         status: VacancyStatus,
     ) => {
+        const previous = vacancies;
+
+        const updatedVacancies = vacancies.map(v =>
+            v.id === id ? { ...v, status } : v
+        );
+
+        setVacancies(updatedVacancies);
+        setActionError('');
+
         try {
-            setActionError('');
             await updateVacancy(id, { status });
-            await loadVacancies();
         } catch (error) {
-            console.error(error);
+            setVacancies(previous);
             setActionError(
                 error instanceof Error ? error.message : 'Failed to update vacancy status',
             );
