@@ -1,4 +1,5 @@
 import {getAccessToken} from "@/shared/lib/auth-token";
+import {getAuthHeaders} from "@/shared/api/auth-headers";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -22,7 +23,7 @@ export async function apiFetch<T>(
         ...init,
         headers: {
             'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(token ? getAuthHeaders(token) : {}),
             ...init?.headers,
         },
     });
