@@ -1,20 +1,39 @@
-# JobFlow CRM
+ # JobFlow CRM
 
-## Overview
-AI-powered job search CRM.
+  Job application tracker with a Kanban board and pipeline management.
 
-## Tech Stack
-- Next.js
-- NestJS
-- PostgreSQL
-- Prisma
+  ## Tech Stack
 
-## Features
-- Job tracking
-- AI tools
-- Analytics
+  - **Backend:** NestJS, Prisma, PostgreSQL, JWT auth
+  - **Frontend:** Next.js 16, React 19, Tailwind CSS 4, Zustand, dnd-kit
 
-## Setup
-```bash
-npm install
-npm run dev
+  ## Getting Started
+
+  ### Prerequisites
+
+  - Node.js 18+
+  - PostgreSQL
+  - pnpm
+
+  ### Backend
+
+  ```bash
+  cd backend
+  pnpm install
+  cp .env.example .env   # configure your database URL and secrets
+  npx prisma migrate dev
+  pnpm run start:dev
+
+  Frontend
+
+  cd frontend
+  pnpm install
+  pnpm run dev
+
+  Features
+
+  - User registration and login (JWT)
+  - Create, edit, delete vacancies
+  - Kanban board with drag-and-drop
+  - Search and status filtering
+  - List and board view modes
