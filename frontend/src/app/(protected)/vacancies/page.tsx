@@ -27,7 +27,6 @@ export default function VacanciesPage() {
         viewMode,
         isHydrated,
         isFiltered,
-        isMoving,
         actionError,
         setSearchValue,
         setStatusFilter,
@@ -84,7 +83,6 @@ export default function VacanciesPage() {
             </div>
 
             {actionError ? <ErrorMessage message={actionError}/> : null}
-            {isMoving ? <PageLoader text={"Updating vacancy status..."}/> : null}
 
             {vacancies.length === 0 ? (
                 <EmptyState
@@ -110,15 +108,9 @@ export default function VacanciesPage() {
 
                 <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
                     <div className="h-[calc(100vh-220px)] overflow-x-auto">
-                        <div>
-                            <h1 className="text-2xl font-bold">Vacancies Pipeline</h1>
-                            <p className="mt-1 text-sm text-gray-500">
-                                Track your job search across hiring stages
-                            </p>
                             <p className="mt-2 text-sm text-gray-500">
                                 Drag cards between columns to update vacancy stage
                             </p>
-                        </div>
                         <VacanciesBoard
                             vacancies={filteredVacancies}
                             deletingVacancyId={deletingVacancyId}

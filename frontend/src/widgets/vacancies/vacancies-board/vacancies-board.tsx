@@ -1,7 +1,5 @@
 import { Vacancy, VacancyStatus } from '@/entities/vacancy/model/vacancy';
-import { VacancyBoardCard } from '@/entities/vacancy/ui/vacancy-board-card';
 import { groupVacanciesByStatus } from '@/shared/lib/vacancies/group-vacancies-by-status';
-import {VacanciesColumn} from "@/entities/vacancy/ui/vacancy-column";
 import {DroppableVacancyColumn} from "@/entities/vacancy/ui/droppable-vacancy-column";
 
 type Props = {

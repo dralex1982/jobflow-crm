@@ -1,6 +1,7 @@
 'use client';
 
 import {Vacancy} from '@/entities/vacancy/model/vacancy';
+import {StatusBadge} from "@/entities/vacancy/ui/status-badge";
 
 
 interface VacancyCardProps {
@@ -14,9 +15,14 @@ export function VacancyCard({
                             }: VacancyCardProps) {
     return (
         <li className="rounded-xl border p-4">
+            <div className="flex items-start justify-between">
+                <div>
+                    <div className="font-medium">{vacancy.title}</div>
+                    <div className="text-sm text-gray-500">{vacancy.company}</div>
+                </div>
+                <StatusBadge status={vacancy.status}/>
+            </div>
 
-            <div className="font-medium">{vacancy.title}</div>
-            <div className="text-sm text-gray-500">{vacancy.company}</div>
 
             {vacancy.notes ? (
                 <p className="mt-2 text-sm text-gray-700">{vacancy.notes}</p>

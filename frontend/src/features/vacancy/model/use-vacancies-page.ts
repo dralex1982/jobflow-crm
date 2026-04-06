@@ -31,7 +31,6 @@ export function useVacanciesPage() {
     const [viewMode, setViewMode] = useState<VacancyViewMode>('list');
 
     const [isHydrated, setIsHydrated] = useState(false);
-    const [isMoving, setIsMoving] = useState(false);
     const [actionError, setActionError] = useState('');
 
     const isFiltered = Boolean(searchValue || statusFilter);
@@ -219,55 +218,6 @@ export function useVacanciesPage() {
         }
     };
 
-    const handleChangeStatusVacancy = async (
-        id: string,
-        status: VacancyStatus,
-    ) => {
-        try {
-            setActionError('');
-            await updateVacancy(id, { status });
-            setVacancies((prev) => prev.filter((vacancy) => vacancy.id !== id));
-        } catch (error) {
-            console.error(error);
-            setActionError(
-                error instanceof Error ? error.message : 'Failed to update vacancy status',
-            );
-        }
-    };
-
-    const handleDropVacancy = async (
-        vacancyId: string,
-        nextStatus: VacancyStatus,
-    ) => {
-        if (isMoving) return;
-
-        const currentVacancy = vacancies.find((v) => v.id === vacancyId);
-
-        if (!currentVacancy) return;
-        if (currentVacancy.status === nextStatus) return;
-
-        const previousVacancies = vacancies;
-
-        const updatedVacancies = vacancies.map((v) =>
-            v.id === vacancyId ? { ...v, status: nextStatus } : v,
-        );
-
-        setVacancies(updatedVacancies);
-        setActionError('');
-        setIsMoving(true);
-
-        try {
-            await updateVacancy(vacancyId, { status: nextStatus });
-        } catch (error) {
-            console.error(error);
-            setVacancies(previousVacancies);
-            setActionError(
-                error instanceof Error ? error.message : 'Failed to move vacancy',
-            );
-        } finally {
-            setIsMoving(false);
-        }
-    };
 
     return {
         vacancies,
@@ -280,7 +230,6 @@ export function useVacanciesPage() {
         viewMode,
         isHydrated,
         isFiltered,
-        isMoving,
         actionError,
 
         setSearchValue,
@@ -290,8 +239,6 @@ export function useVacanciesPage() {
         handleResetFilters,
         handleCreateVacancy,
         handleDeleteVacancy,
-        handleChangeStatusVacancy,
-        handleDropVacancy,
 
         activeVacancy,
         handleDragStart,
