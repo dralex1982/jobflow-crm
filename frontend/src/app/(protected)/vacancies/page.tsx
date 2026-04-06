@@ -11,6 +11,8 @@ import {EmptyState} from "@/shared/ui/empty-state/empty-state";
 import {useVacanciesPage} from "@/features/vacancy/model/use-vacancies-page";
 import {PageShell} from "@/shared/ui/page-shell/page-shell";
 import {PageHeader} from "@/shared/ui/page-header/page-header";
+import {DndContext, DragOverlay} from "@dnd-kit/core";
+import {DraggableVacancyCard} from "@/entities/vacancy/ui/draggable-vacancy-card";
 
 export default function VacanciesPage() {
 
@@ -19,6 +21,7 @@ export default function VacanciesPage() {
         vacancies,
         isVacanciesLoading,
         vacanciesError,
+        deletingVacancyId,
         searchValue,
         statusFilter,
         viewMode,
@@ -32,17 +35,18 @@ export default function VacanciesPage() {
         handleResetFilters,
         handleCreateVacancy,
         handleDeleteVacancy,
-        handleChangeStatusVacancy,
-        handleDropVacancy,
+        activeVacancy,
+        handleDragStart,
+        handleDragEnd,
     } = useVacanciesPage();
 
 
     if (isVacanciesLoading || !isHydrated) {
-        return <PageLoader text="Loading vacancies..." />;
+        return <PageLoader text="Loading vacancies..."/>;
     }
 
     if (vacanciesError) {
-        return <ErrorMessage message={vacanciesError} />;
+        return <ErrorMessage message={vacanciesError}/>;
     }
 
     return (
@@ -51,11 +55,11 @@ export default function VacanciesPage() {
                 title={"Vacancies"}
                 description={"Manage your job applications and pipeline"}
                 action={
-                <Link
-                    href="/dashboard"
-                    className="rounded-lg border px-4 py-2 text-sm">
-                    Back to dashboard
-                </Link>}
+                    <Link
+                        href="/dashboard"
+                        className="rounded-lg border px-4 py-2 text-sm">
+                        Back to dashboard
+                    </Link>}
             />
             <CreateVacancyForm onCreate={handleCreateVacancy}/>
             <VacanciesToolbar
@@ -99,18 +103,39 @@ export default function VacanciesPage() {
                             key={vacancy.id}
                             vacancy={vacancy}
                             onDelete={handleDeleteVacancy}
-                            onStatusChange={handleChangeStatusVacancy}
                         />
                     ))}
                 </div>
             ) : (
-                <div className="h-[calc(100vh-220px)] overflow-x-auto">
-                    <VacanciesBoard
-                        vacancies={filteredVacancies}
-                        onDelete={handleDeleteVacancy}
-                        onStatusChange={handleChangeStatusVacancy}
-                    />
-                </div>
+
+                <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+                    <div className="h-[calc(100vh-220px)] overflow-x-auto">
+                        <div>
+                            <h1 className="text-2xl font-bold">Vacancies Pipeline</h1>
+                            <p className="mt-1 text-sm text-gray-500">
+                                Track your job search across hiring stages
+                            </p>
+                            <p className="mt-2 text-sm text-gray-500">
+                                Drag cards between columns to update vacancy stage
+                            </p>
+                        </div>
+                        <VacanciesBoard
+                            vacancies={filteredVacancies}
+                            deletingVacancyId={deletingVacancyId}
+                            onDelete={handleDeleteVacancy}
+                        />
+                    </div>
+                    <DragOverlay>
+                        {activeVacancy ? (
+                            <div className="w-[300px] opacity-95">
+                                <DraggableVacancyCard
+                                    vacancy={activeVacancy}
+                                    onDelete={handleDeleteVacancy}
+                                />
+                            </div>
+                        ) : null}
+                    </DragOverlay>
+                </DndContext>
             )}
         </PageShell>)
 }

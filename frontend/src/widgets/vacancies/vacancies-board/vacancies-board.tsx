@@ -2,11 +2,12 @@ import { Vacancy, VacancyStatus } from '@/entities/vacancy/model/vacancy';
 import { VacancyBoardCard } from '@/entities/vacancy/ui/vacancy-board-card';
 import { groupVacanciesByStatus } from '@/shared/lib/vacancies/group-vacancies-by-status';
 import {VacanciesColumn} from "@/entities/vacancy/ui/vacancy-column";
+import {DroppableVacancyColumn} from "@/entities/vacancy/ui/droppable-vacancy-column";
 
 type Props = {
     vacancies: Vacancy[];
-    onDelete: (id: string) => void;
-    onStatusChange: (id: string, status: VacancyStatus) => void;
+    deletingVacancyId?: string | null;
+    onDelete: (id: string) => Promise<void>;
 };
 
 const STATUS_ORDER: VacancyStatus[] = [
@@ -20,20 +21,21 @@ const STATUS_ORDER: VacancyStatus[] = [
 
 export const VacanciesBoard = ({
                                    vacancies,
+                                   deletingVacancyId = null,
                                    onDelete,
-                                   onStatusChange,
                                }: Props) => {
     const groupedVacancies = groupVacanciesByStatus(vacancies);
 
     return (
-                <div className="grid auto-cols-[260px] grid-flow-col gap-4">
+                <div className="grid auto-cols-[300px] grid-flow-col gap-4">
                     {STATUS_ORDER.map((status) => (
-                        <VacanciesColumn
+                        <DroppableVacancyColumn
                             key={status}
                             status={status}
+                            title={status}
                             vacancies={groupedVacancies[status]}
+                            deletingVacancyId={deletingVacancyId}
                             onDelete={onDelete}
-                            onStatusChange={onStatusChange}
                         />
                     ))}
                 </div>
