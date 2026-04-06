@@ -4,7 +4,7 @@ import {CreateVacancyDto} from "./dto/create-vacancy.dto";
 import {UpdateVacancyDto} from "./dto/update-vacancy.dto";
 
 @Injectable()
-class VacanciesService {
+export class VacanciesService {
     constructor(private readonly prisma: PrismaService) {
     }
 
@@ -40,7 +40,7 @@ class VacanciesService {
         });
 
         if (!vacancy) {
-            throw new NotFoundException('Types not found');
+            throw new NotFoundException('Vacancy not found');
         }
 
         return this.prisma.vacancy.update({
@@ -73,7 +73,7 @@ class VacanciesService {
         });
 
         if (!vacancy) {
-            throw new NotFoundException('Types not found');
+            throw new NotFoundException('Vacancy not found');
         }
 
         await this.prisma.vacancy.delete({
@@ -83,5 +83,3 @@ class VacanciesService {
         return {success: true};
     }
 }
-
-export default VacanciesService

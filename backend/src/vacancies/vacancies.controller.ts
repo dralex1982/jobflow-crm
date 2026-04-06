@@ -1,6 +1,6 @@
 import {Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards} from '@nestjs/common';
 import {JwtAuthGuard} from "../auth/guards/jwt-auth.guard";
-import VacanciesService from "./vacancies.service";
+import {VacanciesService} from "./vacancies.service";
 import {CreateVacancyDto} from "./dto/create-vacancy.dto";
 import {UpdateVacancyDto} from "./dto/update-vacancy.dto";
 
