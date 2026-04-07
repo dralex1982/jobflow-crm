@@ -9,7 +9,9 @@ interface DroppableVacancyColumnProps {
     title: string;
     vacancies: Vacancy[];
     deletingVacancyId?: string | null;
+    loadingAnalysisVacancyId?: string | null;
     onDelete: (vacancyId: string) => Promise<void>;
+    onOpenAnalysis: (vacancyId: string) => Promise<void>;
 }
 
 export function DroppableVacancyColumn({
@@ -17,7 +19,9 @@ export function DroppableVacancyColumn({
                                            title,
                                            vacancies,
                                            deletingVacancyId = null,
+                                           loadingAnalysisVacancyId = null,
                                            onDelete,
+                                           onOpenAnalysis,
                                        }: DroppableVacancyColumnProps) {
     const { isOver, setNodeRef } = useDroppable({
         id: status,
@@ -58,7 +62,9 @@ export function DroppableVacancyColumn({
                             key={vacancy.id}
                             vacancy={vacancy}
                             isDeleting={deletingVacancyId === vacancy.id}
+                            isLoadingAnalysis={loadingAnalysisVacancyId === vacancy.id}
                             onDelete={onDelete}
+                            onOpenAnalysis={onOpenAnalysis}
                         />
                     ))}
                 </div>

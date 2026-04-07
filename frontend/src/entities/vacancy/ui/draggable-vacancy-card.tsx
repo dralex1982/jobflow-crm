@@ -9,13 +9,17 @@ import {Vacancy} from "@/entities/vacancy/model/vacancy";
 interface DraggableVacancyCardProps {
     vacancy: Vacancy;
     isDeleting?: boolean;
+    isLoadingAnalysis?: boolean;
     onDelete?: (vacancyId: string) => Promise<void>;
+    onOpenAnalysis?: (vacancyId: string) => Promise<void>;
 }
 
 export function DraggableVacancyCard({
                                          vacancy,
                                          isDeleting = false,
+                                         isLoadingAnalysis = false,
                                          onDelete,
+                                         onOpenAnalysis,
                                      }: DraggableVacancyCardProps) {
     const {attributes, listeners, setNodeRef, transform, isDragging} =
         useDraggable({
@@ -63,17 +67,29 @@ export function DraggableVacancyCard({
                 )}
             </div>
 
-            {onDelete ? (
-                <div className="mt-4">
+            <div className="mt-4 space-y-2">
+                {onOpenAnalysis ? (
+                    <button
+                        className="w-full rounded-xl border px-3 py-2 text-sm font-medium disabled:opacity-50"
+                        disabled={isLoadingAnalysis || isDeleting}
+                        onClick={() => onOpenAnalysis(vacancy.id)}
+                        type="button"
+                    >
+                        {isLoadingAnalysis ? 'Analyzing...' : 'Analyze with AI'}
+                    </button>
+                ) : null}
+
+                {onDelete ? (
                     <button
                         className="w-full rounded-xl border border-red-200 px-3 py-2 text-sm font-medium text-red-600 disabled:opacity-50"
-                        disabled={isDeleting}
+                        disabled={isDeleting || isLoadingAnalysis}
                         onClick={() => onDelete(vacancy.id)}
+                        type="button"
                     >
                         {isDeleting ? 'Deleting...' : 'Delete'}
                     </button>
-                </div>
-            ) : null}
+                ) : null}
+            </div>
         </div>
     );
 }

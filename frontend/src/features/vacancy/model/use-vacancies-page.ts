@@ -1,22 +1,24 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {
     createVacancy, CreateVacancyRequest,
     deleteVacancy,
     getVacancies,
     updateVacancy,
 } from '@/shared/api/vacancies';
-import { Vacancy, VacancyStatus } from '@/entities/vacancy/model/vacancy';
-import { VacancyViewMode } from '@/features/vacancy/view-mode-switcher/model/view-mode';
+import {Vacancy, VacancyStatus} from '@/entities/vacancy/model/vacancy';
+import {VacancyViewMode} from '@/features/vacancy/view-mode-switcher/model/view-mode';
 import {
     getStorageItem,
     removeStorageItem,
     setStorageItem,
 } from '@/shared/browser/local-storage';
-import { LOCAL_STORAGE_KEYS } from '@/shared/config/local-storage';
+import {LOCAL_STORAGE_KEYS} from '@/shared/config/local-storage';
 import {DragEndEvent, DragStartEvent} from "@dnd-kit/core";
 import {updateVacancyStatusLocally} from "@/shared/lib/vacancies/update-vacancy-status-locally";
+import {analyzeVacancy, getVacancyAnalysis, VacancyAnalysisResponse} from "@/shared/api/ai";
+import {getAccessToken} from "@/shared/lib/auth-token";
 
 export function useVacanciesPage() {
     const [vacancies, setVacancies] = useState<Vacancy[]>([]);
@@ -35,6 +37,73 @@ export function useVacanciesPage() {
 
     const isFiltered = Boolean(searchValue || statusFilter);
 
+    const [loadingAnalysisVacancyId, setLoadingAnalysisVacancyId] = useState<string | null>(null);
+    const [reanalyzingVacancyId, setReanalyzingVacancyId] = useState<string | null>(null);
+    const [analysisResult, setAnalysisResult] = useState<VacancyAnalysisResponse | null>(null);
+    const [analysisTargetVacancy, setAnalysisTargetVacancy] = useState<Vacancy | null>(null);
+    const [analysisError, setAnalysisError] = useState('');
+
+    const handleAnalyzeVacancy = async (vacancyId: string) => {
+        if (!getAccessToken()) return;
+
+        const vacancy = vacancies.find((item) => item.id === vacancyId);
+        if (!vacancy) return;
+
+        try {
+            setLoadingAnalysisVacancyId(vacancyId);
+            setAnalysisError('');
+            setAnalysisResult(null)
+            setAnalysisTargetVacancy(vacancy);
+
+            const existingAnalysis = await getVacancyAnalysis(vacancyId);
+
+            if (existingAnalysis) {
+                setAnalysisResult(existingAnalysis);
+                return;
+            }
+
+            const generatedAnalysis = await analyzeVacancy(vacancyId);
+            setAnalysisResult(generatedAnalysis);
+
+        } catch (error) {
+            setAnalysisError(
+                error instanceof Error ? error.message : 'Failed to load vacancy analysis',
+            );
+            setAnalysisResult(null);
+        } finally {
+            setLoadingAnalysisVacancyId(null);
+        }
+    };
+
+    const handleReanalyzeVacancy = async (vacancyId: string) => {
+        if (!getAccessToken()) return;
+
+        const vacancy = vacancies.find((item) => item.id === vacancyId);
+        if (!vacancy) return;
+
+        try {
+            setReanalyzingVacancyId(vacancyId);
+            setAnalysisError('');
+            setAnalysisTargetVacancy(vacancy);
+
+            const freshAnalysis = await analyzeVacancy(vacancyId);
+            setAnalysisResult(freshAnalysis);
+        } catch (error) {
+            setAnalysisError(
+                error instanceof Error ? error.message : 'Failed to re-analyze vacancy',
+            );
+        } finally {
+            setReanalyzingVacancyId(null);
+        }
+    };
+
+    const handleCloseAnalysis = () => {
+        setAnalysisResult(null);
+        setAnalysisTargetVacancy(null);
+        setAnalysisError('');
+        setReanalyzingVacancyId(null);
+    };
+
     const filteredVacancies = useMemo(() => {
         return vacancies.filter((vacancy) => {
             const matchesSearch =
@@ -48,23 +117,31 @@ export function useVacanciesPage() {
         });
     }, [vacancies, searchValue, statusFilter]);
 
+    const handleResetFilters = () => {
+        setSearchValue('');
+        setStatusFilter('');
+
+        removeStorageItem(LOCAL_STORAGE_KEYS.vacanciesSearchValue);
+        removeStorageItem(LOCAL_STORAGE_KEYS.vacanciesStatusFilter);
+    };
+
     useEffect(() => {
         const loadVacancies = async () => {
-        try {
-            setIsVacanciesLoading(true);
-            setVacanciesError('');
+            try {
+                setIsVacanciesLoading(true);
+                setVacanciesError('');
 
-            const data = await getVacancies();
-            setVacancies(data);
-        } catch (error) {
-            console.error(error);
-            setVacanciesError(
-                error instanceof Error ? error.message : 'Failed to load vacancies',
-            );
-        } finally {
-            setIsVacanciesLoading(false);
-        }
-    };
+                const data = await getVacancies();
+                setVacancies(data);
+            } catch (error) {
+                console.error(error);
+                setVacanciesError(
+                    error instanceof Error ? error.message : 'Failed to load vacancies',
+                );
+            } finally {
+                setIsVacanciesLoading(false);
+            }
+        };
 
         loadVacancies();
     }, []);
@@ -132,14 +209,6 @@ export function useVacanciesPage() {
         );
     }, [viewMode, isHydrated]);
 
-    const handleResetFilters = () => {
-        setSearchValue('');
-        setStatusFilter('');
-
-        removeStorageItem(LOCAL_STORAGE_KEYS.vacanciesSearchValue);
-        removeStorageItem(LOCAL_STORAGE_KEYS.vacanciesStatusFilter);
-    };
-
     const activeVacancy = activeVacancyId
         ? vacancies.find((vacancy) => vacancy.id === activeVacancyId) ?? null
         : null;
@@ -181,7 +250,7 @@ export function useVacanciesPage() {
                     vacancy.id === vacancyId ? updatedVacancy : vacancy,
                 ),
             );
-        } catch(error) {
+        } catch (error) {
             setVacancies(previousVacancies);
             setActionError(
                 error instanceof Error ? error.message : 'Failed to update vacancy status',
@@ -243,5 +312,14 @@ export function useVacanciesPage() {
         activeVacancy,
         handleDragStart,
         handleDragEnd,
+
+        loadingAnalysisVacancyId,
+        reanalyzingVacancyId,
+        analysisResult,
+        analysisTargetVacancy,
+        analysisError,
+        handleAnalyzeVacancy,
+        handleReanalyzeVacancy,
+        handleCloseAnalysis,
     };
 }

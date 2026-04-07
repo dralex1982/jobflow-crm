@@ -24,6 +24,7 @@ export class VacanciesService {
                 status: true,
                 notes: true,
                 createdAt: true,
+                updatedAt: true,
             },
         });
     }
@@ -46,6 +47,15 @@ export class VacanciesService {
         return this.prisma.vacancy.update({
             where: {id: vacancyId},
             data: dto,
+            select: {
+                id: true,
+                title: true,
+                company: true,
+                status: true,
+                notes: true,
+                createdAt: true,
+                updatedAt: true,
+            },
         });
     }
 
@@ -60,6 +70,7 @@ export class VacanciesService {
                 status: true,
                 notes: true,
                 createdAt: true,
+                updatedAt: true,
             },
         });
     }

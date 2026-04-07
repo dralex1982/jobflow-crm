@@ -13,6 +13,7 @@ import {PageShell} from "@/shared/ui/page-shell/page-shell";
 import {PageHeader} from "@/shared/ui/page-header/page-header";
 import {DndContext, DragOverlay} from "@dnd-kit/core";
 import {DraggableVacancyCard} from "@/entities/vacancy/ui/draggable-vacancy-card";
+import {VacancyAnalysisPanel} from "@/features/vacancy/analyze-vacancy/ui/vacancy-analysis-panel";
 
 export default function VacanciesPage() {
 
@@ -37,6 +38,15 @@ export default function VacanciesPage() {
         activeVacancy,
         handleDragStart,
         handleDragEnd,
+
+        loadingAnalysisVacancyId,
+        reanalyzingVacancyId,
+        analysisResult,
+        analysisTargetVacancy,
+        analysisError,
+        handleAnalyzeVacancy,
+        handleReanalyzeVacancy,
+        handleCloseAnalysis,
     } = useVacanciesPage();
 
 
@@ -108,15 +118,31 @@ export default function VacanciesPage() {
 
                 <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
                     <div className="h-[calc(100vh-220px)] overflow-x-auto">
-                            <p className="mt-2 text-sm text-gray-500">
-                                Drag cards between columns to update vacancy stage
-                            </p>
+                        <p className="mt-2 text-sm text-gray-500">
+                            Drag cards between columns to update vacancy stage
+                        </p>
                         <VacanciesBoard
                             vacancies={filteredVacancies}
                             deletingVacancyId={deletingVacancyId}
+                            analyzingVacancyId={loadingAnalysisVacancyId ?? reanalyzingVacancyId}
                             onDelete={handleDeleteVacancy}
+                            onAnalyze={handleAnalyzeVacancy}
                         />
                     </div>
+                    {analysisTargetVacancy ? (
+                        <div className="mt-6">
+                            <VacancyAnalysisPanel
+                                title={analysisTargetVacancy.title}
+                                company={analysisTargetVacancy.company}
+                                result={analysisResult}
+                                error={analysisError}
+                                isLoading={loadingAnalysisVacancyId === analysisTargetVacancy.id}
+                                isReanalyzing={reanalyzingVacancyId === analysisTargetVacancy.id}
+                                onReanalyze={() => handleReanalyzeVacancy(analysisTargetVacancy.id)}
+                                onClose={handleCloseAnalysis}
+                            />
+                        </div>
+                    ) : null}
                     <DragOverlay>
                         {activeVacancy ? (
                             <div className="w-[300px] opacity-95">
