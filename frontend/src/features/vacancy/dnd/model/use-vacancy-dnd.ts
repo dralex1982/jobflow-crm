@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
-import { Vacancy, VacancyStatus } from '@/entities/vacancy/model/vacancy';
+import {useMemo, useState} from 'react';
+import {DragEndEvent, DragStartEvent} from '@dnd-kit/core';
+import {Vacancy, VacancyStatus} from '@/entities/vacancy/model/vacancy';
 
 type UseVacancyDndParams = {
     vacancies: Vacancy[];

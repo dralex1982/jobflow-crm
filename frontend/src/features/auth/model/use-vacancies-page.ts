@@ -38,7 +38,7 @@ export function useVacanciesPage() {
             }
         };
 
-        loadVacancies();
+        void loadVacancies();
     }, []);
 
 
@@ -64,7 +64,8 @@ export function useVacanciesPage() {
     }, [viewMode, isHydrated]);
 
     const actions = useVacancyActions({
-        vacancies, setVacancies
+        vacancies,
+        setVacancies
     })
 
     const filters = useVacancyFilters(vacancies);
