@@ -1,0 +1,1 @@
+export { useVacancyActions } from './model/use-vacancy-actions';

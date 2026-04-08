@@ -2,21 +2,19 @@
 
 import {useEffect, useState} from 'react';
 import {getVacancies} from '@/shared/api/vacancies';
-import {Vacancy, VacancyStatus} from '@/entities/vacancy/model/vacancy';
+import {Vacancy} from '@/entities/vacancy/model/vacancy';
 import {VacancyViewMode} from '@/features/vacancy/view-mode-switcher/model/view-mode';
 import {getStorageItem, setStorageItem} from '@/shared/browser/local-storage';
 import {LOCAL_STORAGE_KEYS} from '@/shared/config/local-storage';
-import {DragEndEvent, DragStartEvent} from "@dnd-kit/core";
 import {useVacancyAnalysis} from "@/features/vacancy/analyze-vacancy/model/use-vacancy-analysis";
 import {useVacancyActions} from "@/features/vacancy/actions/model/use-vacancy-actions";
 import {useVacancyFilters} from "@/features/vacancy/filters";
+import {useVacancyDnd} from "@/features/vacancy/dnd";
 
 export function useVacanciesPage() {
     const [vacancies, setVacancies] = useState<Vacancy[]>([]);
     const [isVacanciesLoading, setIsVacanciesLoading] = useState(true);
     const [vacanciesError, setVacanciesError] = useState('');
-
-    const [activeVacancyId, setActiveVacancyId] = useState<string | null>(null);
 
     const [viewMode, setViewMode] = useState<VacancyViewMode>('list');
 
@@ -73,34 +71,10 @@ export function useVacanciesPage() {
 
     const analysis = useVacancyAnalysis(vacancies);
 
-    const activeVacancy = activeVacancyId
-        ? vacancies.find((vacancy) => vacancy.id === activeVacancyId) ?? null
-        : null;
-
-    const handleDragStart = (event: DragStartEvent) => {
-        setActiveVacancyId(String(event.active.id));
-    };
-
-    const handleDragEnd = async (event: DragEndEvent) => {
-        setActiveVacancyId(null);
-
-        const vacancyId = String(event.active.id);
-        const nextStatus = event.over?.id as VacancyStatus | undefined;
-
-        if (!nextStatus) return;
-
-        const currentVacancy = vacancies.find((vacancy) => vacancy.id === vacancyId);
-        if (!currentVacancy) return;
-
-        const previousStatus = currentVacancy.status;
-
-        if (previousStatus === nextStatus) {
-            return;
-        }
-
-        await actions.handleUpdateVacancyStatus(vacancyId, nextStatus);
-    };
-
+    const dnd = useVacancyDnd({
+        vacancies,
+        onUpdateStatus: actions.handleUpdateVacancyStatus,
+    });
 
     return {
         vacancies,
@@ -111,12 +85,9 @@ export function useVacanciesPage() {
 
         setViewMode,
 
-        activeVacancy,
-        handleDragStart,
-        handleDragEnd,
-
         ...actions,
         ...filters,
+        ...dnd,
         ...analysis
     };
 }

@@ -1,0 +1,1 @@
+export { useVacancyDnd } from './model/use-vacancy-dnd';
