@@ -1,0 +1,1 @@
+export { useVacancyFilters } from './model/use-vacancy-filters';

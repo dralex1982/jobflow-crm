@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>JobFlow CRM — Вопросы к собеседованию</title>
+<style>
+  @media print {
+    body { font-size: 10.5pt; }
+    .question { break-inside: avoid; }
+    h2 { break-before: auto; }
+  }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 40px 30px;
+    color: #1a1a1a;
+    line-height: 1.65;
+  }
+  h1 {
+    text-align: center;
+    font-size: 24pt;
+    margin-bottom: 5px;
+    color: #111;
+  }
+  .subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 40px;
+    font-size: 11pt;
+  }
+  h2 {
+    color: #2563eb;
+    border-bottom: 2px solid #2563eb;
+    padding-bottom: 5px;
+    margin-top: 40px;
+    font-size: 16pt;
+  }
+  .question {
+    margin-bottom: 28px;
+    padding: 16px 20px;
+    background: #f8fafc;
+    border-left: 4px solid #2563eb;
+    border-radius: 0 8px 8px 0;
+  }
+  .question h3 {
+    margin: 0 0 12px 0;
+    color: #1e40af;
+    font-size: 12pt;
+  }
+  .question p, .question ul, .question ol {
+    margin: 7px 0;
+    font-size: 10.5pt;
+  }
+  .question ul, .question ol {
+    padding-left: 22px;
+  }
+  .question li {
+    margin-bottom: 5px;
+  }
+  .theory {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 10px 0;
+    font-size: 10pt;
+  }
+  .theory-title {
+    font-weight: bold;
+    color: #92400e;
+    margin-bottom: 4px;
+  }
+  .analogy {
+    background: #ecfdf5;
+    border: 1px solid #6ee7b7;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 10px 0;
+    font-size: 10pt;
+  }
+  .analogy-title {
+    font-weight: bold;
+    color: #065f46;
+    margin-bottom: 4px;
+  }
+  strong { color: #1a1a1a; }
+  code {
+    background: #e2e8f0;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 10pt;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 10pt;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 6px 10px;
+    text-align: left;
+  }
+  th { background: #e2e8f0; }
+</style>
+</head>
+<body>
+
+<h1>JobFlow CRM</h1>
+<p class="subtitle">Вопросы и ответы к собеседованию &mdash; NestJS, Next.js, PostgreSQL, Prisma, Zustand</p>
+
+<!-- ===== BACKEND ===== -->
+<h2>Backend (NestJS, Prisma, PostgreSQL)</h2>
+
+<!-- Q1 -->
+<div class="question">
+<h3>1. Как устроена аутентификация в проекте?</h3>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое аутентификация и авторизация?</div>
+<strong>Аутентификация</strong> &mdash; это проверка &laquo;кто ты?&raquo; (логин + пароль). <strong>Авторизация</strong> &mdash; &laquo;что тебе можно?&raquo; (роли, права доступа). Это два разных процесса: сначала мы узнаём, кто пользователь (аутентификация), а потом решаем, что ему разрешено делать (авторизация).
+</div>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое JWT?</div>
+<strong>JWT (JSON Web Token)</strong> &mdash; строка из трёх частей, разделённых точками: <code>header.payload.signature</code>.
+<ul>
+  <li><strong>Header</strong> &mdash; алгоритм подписи (например, HS256)</li>
+  <li><strong>Payload</strong> &mdash; данные (userId, email, role, время истечения). Не зашифрованы &mdash; можно прочитать через base64, поэтому пароли туда не кладут</li>
+  <li><strong>Signature</strong> &mdash; подпись: сервер берёт header + payload + секретный ключ и хеширует. При получении токена сервер пересчитывает подпись &mdash; если не совпала, токен подделан</li>
+</ul>
+<strong>Зачем JWT?</strong> Чтобы не хранить сессию на сервере. Сервер выдаёт токен при логине, а дальше клиент отправляет его с каждым запросом. Сервер проверяет подпись &mdash; и сразу знает, кто этот пользователь. Это называется <strong>stateless-аутентификация</strong>.
+</div>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое bcrypt и зачем хешировать пароли?</div>
+Пароли <strong>никогда</strong> не хранят в открытом виде. Если базу данных взломают &mdash; хакер получит все пароли. Поэтому пароль пропускают через <strong>хеш-функцию</strong> &mdash; она превращает &laquo;myPassword123&raquo; в строку вида <code>$2b$10$K7L...</code>. Обратное преобразование невозможно.<br><br>
+<strong>bcrypt</strong> &mdash; специальный алгоритм для паролей. У него есть параметр &laquo;раунды соли&raquo; (salt rounds) &mdash; чем больше, тем медленнее хеширование. 10 раундов &mdash; стандарт. Это специально: если хакер перебирает пароли, каждая проверка занимает ~100мс вместо наносекунд.<br><br>
+<strong>Соль (salt)</strong> &mdash; случайная строка, которая добавляется к паролю перед хешированием. Благодаря ей два одинаковых пароля дают разные хеши. Bcrypt генерирует соль автоматически.
+</div>
+
+<p><strong>Как это работает в проекте:</strong></p>
+<p><strong>Регистрация:</strong> <code>POST /auth/register</code> &rarr; <code>AuthService</code> хеширует пароль через <code>bcrypt</code> (10 раундов соли), сохраняет пользователя в PostgreSQL через Prisma, генерирует JWT с payload <code>{sub: userId, email, role}</code>, время жизни &mdash; 1 день. Секрет подписи берётся из переменной окружения <code>JWT_ACCESS_SECRET</code>.</p>
+<p><strong>Логин:</strong> <code>POST /auth/login</code> &rarr; находит пользователя по email, сравнивает пароль с хешем через <code>bcrypt.compare()</code>. Если совпало &mdash; возвращает <code>{ accessToken, user }</code>.</p>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое Guards и Strategy в NestJS?</div>
+<strong>Guard</strong> &mdash; &laquo;охранник&raquo; маршрута. Выполняется ДО контроллера. Если guard вернул <code>false</code> &mdash; запрос отклоняется (401). Навешивается через декоратор <code>@UseGuards(JwtAuthGuard)</code>.<br><br>
+<strong>Strategy (Passport)</strong> &mdash; стратегия аутентификации. Описывает КАК проверять пользователя. <code>JwtStrategy</code> говорит: &laquo;достань токен из заголовка Authorization, проверь подпись, верни данные пользователя&raquo;. Passport поддерживает разные стратегии: JWT, OAuth (Google, GitHub), Local (email/пароль).
+</div>
+
+<p><strong>Защита эндпоинтов:</strong> <code>JwtAuthGuard</code> (наследуется от <code>AuthGuard('jwt')</code>) применяется через <code>@UseGuards</code> на уровне контроллера &mdash; все маршруты внутри защищены. <code>JwtStrategy</code> извлекает токен из заголовка <code>Authorization: Bearer &lt;token&gt;</code>, верифицирует подпись, затем по email из payload загружает полного пользователя из БД через <code>UsersService.findByEmail()</code>. Результат записывается в <code>req.user</code> и доступен в контроллере.</p>
+<p>На фронте токен хранится в <code>localStorage</code> под ключом <code>jobflow_access_token</code> и автоматически подставляется в каждый запрос через обёртку <code>apiFetch</code>.</p>
+</div>
+
+<!-- Q2 -->
+<div class="question">
+<h3>2. Почему JwtStrategy делает запрос в базу на каждый запрос?</h3>
+
+<div class="analogy">
+<div class="analogy-title">Аналогия</div>
+Представь, что JWT &mdash; это пропуск в офис. Стандартный подход: охранник смотрит на пропуск, проверяет, что он не поддельный (подпись валидна) &mdash; и пускает. Наш подход: охранник ещё и звонит в HR, чтобы убедиться, что человек всё ещё работает в компании.
+</div>
+
+<p><strong>Зачем:</strong> Гарантия актуальности. Если аккаунт удалён или заблокирован после выдачи токена, запрос в БД это сразу выявит. Без проверки пользователь с просроченным правом доступа мог бы работать до истечения JWT (до 24 часов).</p>
+<p><strong>Минус:</strong> дополнительный SQL-запрос на каждый аутентифицированный запрос = нагрузка на БД.</p>
+<p><strong>Альтернативы:</strong></p>
+<ul>
+  <li><strong>Только payload</strong> &mdash; проверять только подпись (быстро, но нет способа отозвать токен досрочно)</li>
+  <li><strong>Refresh-токены</strong> &mdash; access-токен живёт 15 мин и проверяется без БД; refresh-токен (7 дней) хранится в БД и используется для обновления access-токена</li>
+  <li><strong>Blacklist в Redis</strong> &mdash; при блокировке пользователя его токен добавляется в быстрый кеш Redis; при проверке смотрим: если токен в blacklist &mdash; отклоняем</li>
+</ul>
+</div>
+
+<!-- Q3 -->
+<div class="question">
+<h3>3. Как реализована авторизация доступа к вакансиям?</h3>
+
+<div class="theory">
+<div class="theory-title">Теория: аутентификация vs авторизация (ещё раз)</div>
+Аутентификация &mdash; &laquo;ты вошёл в систему&raquo;. Авторизация &mdash; &laquo;можешь ли ты редактировать ИМЕННО ЭТУ вакансию?&raquo;. В нашем случае правило простое: ты можешь менять только свои вакансии.
+</div>
+
+<p><strong>Реализация:</strong> Ownership check через scope запроса в Prisma: <code>findFirst({ where: { id, userId } })</code>. Одним запросом проверяется и существование записи, и её принадлежность текущему пользователю. Если вакансия не найдена ИЛИ принадлежит другому &mdash; возвращается <code>NotFoundException</code> (404).</p>
+
+<div class="analogy">
+<div class="analogy-title">Почему 404, а не 403?</div>
+403 Forbidden означает &laquo;ресурс существует, но тебе нельзя&raquo;. Это раскрывает информацию &mdash; злоумышленник узнает, что такая вакансия существует. 404 Not Found ничего не раскрывает &mdash; безопаснее.
+</div>
+
+<p><strong>Плюс:</strong> простота &mdash; один запрос решает и поиск, и авторизацию.</p>
+<p><strong>Минус:</strong> не переиспользуемый паттерн. Если появятся другие сущности (проекты, заметки), придётся дублировать логику. В крупном проекте лучше вынести в guard или использовать библиотеку CASL для декларативных permissions.</p>
+<p>При создании вакансии <code>userId</code> берётся из <code>req.user.id</code> (данные из JWT) &mdash; пользователь не может подставить чужой userId в теле запроса.</p>
+</div>
+
+<!-- Q4 -->
+<div class="question">
+<h3>4. Зачем ValidationPipe с whitelist и forbidNonWhitelisted?</h3>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое Pipe в NestJS?</div>
+<strong>Pipe</strong> &mdash; это промежуточный обработчик, который трансформирует или валидирует данные ДО того, как они попадут в контроллер. Pipes работают в конвейере запроса: запрос &rarr; Guards &rarr; <strong>Pipes</strong> &rarr; Controller &rarr; Service.<br><br>
+<code>ValidationPipe</code> &mdash; встроенный pipe, который использует библиотеки <code>class-validator</code> (правила валидации через декораторы) и <code>class-transformer</code> (преобразование plain объекта в экземпляр класса DTO).
+</div>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое DTO?</div>
+<strong>DTO (Data Transfer Object)</strong> &mdash; класс, который описывает форму входящих данных. Например, <code>RegisterDto</code> говорит: &laquo;я ожидаю email (строка, формат email), password (строка, минимум 6 символов), firstName (опционально)&raquo;. Всё, что не описано в DTO &mdash; &laquo;лишнее&raquo;.
+</div>
+
+<p><strong>Настройки ValidationPipe:</strong></p>
+<ul>
+  <li><code>whitelist: true</code> &mdash; автоматически удаляет из тела запроса все поля, не описанные в DTO</li>
+  <li><code>forbidNonWhitelisted: true</code> &mdash; ещё строже: выбрасывает ошибку 400 Bad Request, если пришли лишние поля</li>
+</ul>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое mass assignment?</div>
+<strong>Mass assignment</strong> &mdash; атака, при которой злоумышленник добавляет в запрос поля, которые не должен контролировать. Пример: при регистрации отправить <code>{ email, password, role: "ADMIN" }</code>. Если бекенд просто передаст все поля в <code>prisma.user.create(data)</code> &mdash; пользователь станет админом. <code>whitelist</code> и <code>forbidNonWhitelisted</code> предотвращают это.
+</div>
+
+<p>В DTO используются декораторы из <code>class-validator</code>: <code>@IsEmail()</code> (проверка формата email), <code>@MinLength(6)</code> (пароль не короче 6 символов), <code>@IsString()</code>, <code>@IsOptional()</code> (поле необязательное).</p>
+</div>
+
+<!-- Q5 -->
+<div class="question">
+<h3>5. Расскажи про схему БД. Почему VacancyAnalysis &mdash; отдельная таблица?</h3>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое UUID?</div>
+<strong>UUID (Universally Unique Identifier)</strong> &mdash; уникальный идентификатор вида <code>550e8400-e29b-41d4-a716-446655440000</code>. В отличие от автоинкремента (1, 2, 3...), UUID можно генерировать на клиенте, не спрашивая БД. Плюс: нельзя угадать ID другого пользователя (перебором 1, 2, 3...).
+</div>
+
+<div class="theory">
+<div class="theory-title">Теория: типы связей между таблицами</div>
+<ul>
+  <li><strong>Один ко многим (1:N)</strong> &mdash; один пользователь имеет много вакансий. Реализуется через FK (foreign key) в дочерней таблице: <code>Vacancy.userId</code> ссылается на <code>User.id</code></li>
+  <li><strong>Один к одному (1:1)</strong> &mdash; одна вакансия имеет максимум один анализ. Реализуется через UNIQUE FK: <code>VacancyAnalysis.vacancyId</code> &mdash; уникальный, значит у одной вакансии не может быть двух анализов</li>
+  <li><strong>Многие ко многим (N:N)</strong> &mdash; в проекте не используется, но реализуется через junction-таблицу</li>
+</ul>
+</div>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое индекс?</div>
+<strong>Индекс</strong> &mdash; как алфавитный указатель в книге. Без индекса БД перебирает все строки таблицы (full table scan). С индексом &mdash; сразу находит нужные записи. Минус: индекс занимает место и замедляет INSERT/UPDATE (нужно обновлять и таблицу, и индекс). Индексируют поля, по которым часто ищут или фильтруют.
+</div>
+
+<p><strong>3 модели:</strong></p>
+<ul>
+  <li><strong>User</strong> &mdash; uuid, email (unique), passwordHash, firstName/lastName (optional), role (enum: USER | ADMIN)</li>
+  <li><strong>Vacancy</strong> &mdash; uuid, title, company, status (enum из 6 значений: SAVED &rarr; APPLIED &rarr; SCREENING &rarr; INTERVIEW &rarr; OFFER &rarr; REJECTED), notes (optional), FK userId. Индексы: <code>[userId]</code> (быстро найти все вакансии пользователя), <code>[status]</code> (быстро фильтровать по статусу)</li>
+  <li><strong>VacancyAnalysis</strong> &mdash; uuid, summary (текст), keySkills/risks/nextActions (тип Json &mdash; массивы строк), unique FK vacancyId</li>
+</ul>
+<p><strong>Связи:</strong> User &rarr; Vacancy (1:N), Vacancy &rarr; VacancyAnalysis (1:1, optional).</p>
+
+<p><strong>Почему анализ &mdash; отдельная таблица?</strong> Анализ создаётся только по запросу пользователя (кнопка &laquo;Analyze with AI&raquo;). Если бы поля summary, keySkills, risks, nextActions были в таблице Vacancy &mdash; у большинства записей они были бы NULL (пустые). Это засоряет основную таблицу. Отдельная таблица &mdash; это паттерн <strong>&laquo;optional extension&raquo;</strong>: данные появляются только при необходимости.</p>
+
+<p><strong>Почему Json вместо отдельных таблиц для keySkills/risks?</strong> Эти массивы только отображаются &mdash; нам не нужно фильтровать вакансии по конкретному навыку или джойнить эти данные с другими таблицами. Json-тип проще и быстрее для чтения/записи списка строк.</p>
+</div>
+
+<!-- Q6 -->
+<div class="question">
+<h3>6. Что такое каскадное удаление?</h3>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое Foreign Key (FK)?</div>
+<strong>Foreign Key</strong> &mdash; столбец, который ссылается на первичный ключ другой таблицы. Например, <code>Vacancy.userId</code> ссылается на <code>User.id</code>. FK гарантирует <strong>ссылочную целостность</strong>: нельзя создать вакансию с userId, которого нет в таблице User.
+<br><br>Но что делать, когда удаляется пользователь, на которого ссылаются вакансии? Есть несколько стратегий:
+<ul>
+  <li><strong>CASCADE</strong> &mdash; удалить все дочерние записи вместе с родительской</li>
+  <li><strong>SET NULL</strong> &mdash; обнулить FK (vacancy.userId = NULL)</li>
+  <li><strong>RESTRICT</strong> &mdash; запретить удаление, пока есть зависимые записи</li>
+  <li><strong>SET DEFAULT</strong> &mdash; установить FK в значение по умолчанию</li>
+</ul>
+</div>
+
+<p><code>onDelete: Cascade</code> &mdash; при удалении родительской записи автоматически удаляются все связанные дочерние записи.</p>
+<p><strong>В проекте:</strong></p>
+<ul>
+  <li><strong>Vacancy &rarr; User:</strong> удаление пользователя автоматически удаляет все его вакансии</li>
+  <li><strong>VacancyAnalysis &rarr; Vacancy:</strong> удаление вакансии удаляет её AI-анализ</li>
+</ul>
+
+<div class="analogy">
+<div class="analogy-title">Аналогия</div>
+Удаляешь папку на компьютере &mdash; удаляются все файлы внутри. Это каскад. RESTRICT &mdash; это когда система говорит &laquo;нельзя удалить папку, там есть файлы&raquo;. SET NULL &mdash; файлы остаются, но теряют привязку к папке.
+</div>
+
+<p>Cascade выбран, потому что вакансии и анализ не имеют смысла без владельца/вакансии. Без каскада в базе остались бы &laquo;сиротские&raquo; записи, или удаление падало бы с ошибкой FK constraint.</p>
+</div>
+
+<!-- Q7 -->
+<div class="question">
+<h3>7. Как работает AI-модуль?</h3>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое температура (temperature) в AI?</div>
+<strong>Temperature</strong> &mdash; параметр, который управляет &laquo;творчеством&raquo; модели. Значение от 0 до 2:
+<ul>
+  <li><strong>0&ndash;0.3</strong> &mdash; детерминированный, предсказуемый ответ. Модель выбирает наиболее вероятные слова. Подходит для структурированных данных (JSON, код)</li>
+  <li><strong>0.7&ndash;1.0</strong> &mdash; креативный, разнообразный ответ. Подходит для текстов, стихов</li>
+  <li><strong>>1.0</strong> &mdash; очень случайный, часто бессвязный</li>
+</ul>
+В проекте <code>temperature: 0.2</code> &mdash; потому что нам нужен стабильный, структурированный JSON.
+</div>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое upsert?</div>
+<strong>Upsert = UPDATE + INSERT.</strong> Если запись с таким ключом существует &mdash; обновить (update). Если не существует &mdash; создать (insert). Одна операция вместо двух. В Prisma: <code>prisma.vacancyAnalysis.upsert({ where: { vacancyId }, create: {...}, update: {...} })</code>.
+</div>
+
+<p><strong>Два эндпоинта:</strong></p>
+<p><strong>POST /ai/vacancies/:id/analyze</strong> &mdash; основной. Сервис находит вакансию по id (с проверкой владельца), формирует промпт с данными (title, company, notes, status), отправляет в OpenAI API (модель <code>gpt-4.1-mini</code>, <code>temperature: 0.2</code>). В промпте явно указан JSON-формат ответа. Сервис парсит JSON, нормализует массивы (обрезает до 8 элементов), сохраняет через <code>upsert</code> &mdash; если анализ уже был, он перезаписывается. Есть graceful fallback: если JSON не парсится, ошибка обрабатывается и не роняет запрос.</p>
+<p><strong>GET /ai/vacancies/:id/analysis</strong> &mdash; возвращает кешированный результат из БД без вызова AI.</p>
+<p><strong>Фронтенд:</strong> кнопка &laquo;Analyze&raquo; сначала проверяет кеш через GET &mdash; если анализ уже есть, показывает его без повторного вызова AI. Только если кеш пуст &mdash; вызывает POST. Кнопка &laquo;Re-analyze&raquo; всегда вызывает POST для свежего анализа. Результат отображается в inline-панели <code>VacancyAnalysisPanel</code> под доской.</p>
+</div>
+
+<!-- ===== FRONTEND ===== -->
+<h2>Frontend (Next.js, React, Zustand)</h2>
+
+<!-- Q8 -->
+<div class="question">
+<h3>8. Почему Zustand, а не Redux / Context API?</h3>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое state management?</div>
+<strong>State (состояние)</strong> &mdash; данные, которые меняются со временем и влияют на UI. Например: &laquo;пользователь авторизован&raquo;, &laquo;список вакансий&raquo;, &laquo;открыта модалка&raquo;. Когда state меняется &mdash; React перерендеривает компоненты, которые от него зависят.<br><br>
+<strong>State management</strong> &mdash; подход к организации и обмену данными между компонентами. Проблема: React передаёт данные сверху вниз (через props). Если два далёких компонента нуждаются в одних данных (например, имя пользователя в Header и на странице профиля), приходится &laquo;пробрасывать&raquo; props через все промежуточные компоненты. Это называется <strong>prop drilling</strong>. State-менеджеры решают эту проблему: данные хранятся в общем &laquo;хранилище&raquo;, и любой компонент может к ним обратиться напрямую.
+</div>
+
+<p><strong>vs Redux:</strong> Минимум бойлерплейта. Redux требует action types, action creators, reducers, store configuration, dispatch, middleware. Zustand &mdash; один вызов <code>create()</code>, доступ через хук. Для небольшого стейта (только auth) Redux &mdash; overkill (избыточен).</p>
+
+<p><strong>vs Context API:</strong> Context &mdash; встроенный механизм React. Но у него проблема с производительностью: при любом изменении значения контекста React перерендеривает <strong>все</strong> компоненты-потребители, даже если они зависят только от части данных. Zustand использует <strong>selector-подписку</strong>: компонент указывает, какое именно поле ему нужно (<code>useAuthStore(state =&gt; state.isAuth)</code>), и перерендеривается только когда это поле изменилось.</p>
+
+<p>В проекте Zustand хранит: <code>user</code>, <code>token</code>, <code>isAuth</code>, <code>isInitialized</code> и экшены <code>login()</code>, <code>logout()</code>, <code>initAuth()</code>.</p>
+</div>
+
+<!-- Q9 -->
+<div class="question">
+<h3>9. Как устроена авторизация на фронте?</h3>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое localStorage?</div>
+<strong>localStorage</strong> &mdash; хранилище в браузере. Данные сохраняются даже после закрытия вкладки. API: <code>localStorage.setItem('key', 'value')</code>, <code>localStorage.getItem('key')</code>. Максимальный объём &mdash; около 5 МБ. Данные доступны любому JavaScript-коду на странице &mdash; поэтому localStorage уязвим к XSS-атакам (вредоносный скрипт может прочитать токен).
+</div>
+
+<p>Авторизация на фронте работает в 4 слоя:</p>
+<p><strong>1. Zustand store</strong> (<code>useAuthStore</code>): хранит <code>user</code>, <code>token</code>, <code>isAuth</code>, <code>isInitialized</code>. Метод <code>initAuth()</code> &mdash; восстановление сессии: читает токен из localStorage &rarr; отправляет <code>GET /users/me</code> &rarr; при успехе: <code>isAuth: true</code> + сохраняет данные пользователя. При ошибке (токен истёк, невалиден): очищает localStorage, <code>isAuth: false</code>.</p>
+<p><strong>2. AuthProvider</strong>: клиентский компонент (<code>'use client'</code>), оборачивает всё приложение. При маунте (первом рендере в DOM) однократно вызывает <code>initAuth()</code>. Флаг <code>isInitialized</code> предотвращает повторный вызов.</p>
+<p><strong>3. ProtectedLayout</strong>: клиентский layout для группы защищённых маршрутов. Ждёт <code>isInitialized === true</code> (пока false &mdash; показывает загрузку). Затем проверяет <code>isAuth</code>: если <code>false</code> &mdash; редирект на <code>/login</code>.</p>
+<p><strong>4. apiFetch</strong>: обёртка над нативным <code>fetch</code>. Автоматически добавляет <code>Authorization: Bearer &lt;token&gt;</code> к каждому запросу. Обрабатывает ошибки: парсит тело ответа (NestJS возвращает <code>{ message }</code>), выбрасывает типизированный <code>ApiError</code> со статусом. HTTP 204 (No Content) возвращает <code>undefined</code>.</p>
+</div>
+
+<!-- Q10 -->
+<div class="question">
+<h3>10. Почему данные не фетчатся на сервере (SSR)?</h3>
+
+<div class="theory">
+<div class="theory-title">Теория: CSR vs SSR vs SSG</div>
+<ul>
+  <li><strong>CSR (Client-Side Rendering)</strong> &mdash; сервер отдаёт пустой HTML + JS-бандл. Браузер скачивает JS, выполняет его, запрашивает данные с API, рендерит страницу. Пользователь видит &laquo;загрузку&raquo; до получения данных. В нашем проекте защищённые страницы работают именно так.</li>
+  <li><strong>SSR (Server-Side Rendering)</strong> &mdash; сервер Next.js сам запрашивает данные, рендерит HTML и отдаёт готовую страницу. Пользователь сразу видит контент. Быстрее первый показ, лучше для SEO.</li>
+  <li><strong>SSG (Static Site Generation)</strong> &mdash; страницы генерируются один раз при сборке (build). Самый быстрый вариант, но не подходит для динамических данных.</li>
+</ul>
+</div>
+
+<p><strong>Почему в проекте CSR, а не SSR?</strong></p>
+<p>Токен аутентификации хранится в <code>localStorage</code> &mdash; это browser API, <strong>недоступное на сервере</strong>. Когда Next.js рендерит страницу на сервере, он не может прочитать токен и, соответственно, не может сделать авторизованный запрос к API.</p>
+<p>Поэтому все авторизованные запросы выполняются на клиенте через <code>useEffect</code> + <code>useState</code>.</p>
+
+<p><strong>Чтобы SSR работал</strong>, нужно хранить токен в <code>httpOnly cookie</code>. Cookie автоматически прикрепляется к запросам, и сервер Next.js может её прочитать через функцию <code>cookies()</code>.</p>
+
+<table>
+  <tr><th></th><th>localStorage (текущий)</th><th>httpOnly cookie</th></tr>
+  <tr><td>SSR для защищённых данных</td><td>Нет</td><td>Да</td></tr>
+  <tr><td>XSS-уязвимость токена</td><td>Да (JS читает токен)</td><td>Нет (JS не имеет доступа)</td></tr>
+  <tr><td>CSRF-защита</td><td>Не нужна</td><td>Нужна</td></tr>
+  <tr><td>Сложность реализации</td><td>Простая</td><td>Сложнее</td></tr>
+</table>
+
+<div class="theory">
+<div class="theory-title">Теория: XSS и CSRF &mdash; в чём разница?</div>
+<strong>XSS (Cross-Site Scripting)</strong> &mdash; атака, при которой злоумышленник внедряет вредоносный JavaScript на страницу. Этот скрипт может прочитать localStorage (и украсть токен). httpOnly cookie защищена: JS не может к ней обратиться.<br><br>
+<strong>CSRF (Cross-Site Request Forgery)</strong> &mdash; атака, при которой вредоносный сайт отправляет запрос к вашему API, и браузер автоматически прикрепляет cookie. Защита: CSRF-токены или проверка заголовка Origin. При localStorage эта атака невозможна, потому что другой сайт не может прочитать ваш localStorage.
+</div>
+
+<p>Для CRM за авторизацией SSR и SEO не критичны &mdash; поисковым роботам не нужно индексировать личные данные пользователя.</p>
+</div>
+
+<!-- Q11 -->
+<div class="question">
+<h3>11. Drag-and-drop и оптимистичное обновление</h3>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое оптимистичное обновление?</div>
+Есть два подхода к обновлению UI после действия пользователя:
+<ul>
+  <li><strong>Пессимистичное</strong> &mdash; ждём ответ сервера, потом обновляем UI. Надёжно, но пользователь ждёт 100&ndash;500мс &mdash; интерфейс кажется &laquo;тормозным&raquo;</li>
+  <li><strong>Оптимистичное</strong> &mdash; обновляем UI мгновенно, КАК БУДТО сервер уже ответил успешно. Если сервер вернул ошибку &mdash; откатываем изменения. Интерфейс кажется мгновенным. Риск: на секунду пользователь видит несуществующее состояние</li>
+</ul>
+Оптимистичное обновление подходит для действий, которые почти всегда успешны (перемещение карточки, лайк, переключение).
+</div>
+
+<p><strong>Библиотека:</strong> <code>@dnd-kit/core</code> &mdash; работает только в board-view (канбан-доска).</p>
+<p><strong>Компоненты:</strong></p>
+<ul>
+  <li><code>DndContext</code> &mdash; обёртка для всей доски, предоставляет контекст drag-and-drop</li>
+  <li><code>DroppableVacancyColumn</code> &mdash; колонка-статус (SAVED, APPLIED...), использует хук <code>useDroppable({ id: status })</code>. ID колонки = значение enum статуса</li>
+  <li><code>DraggableVacancyCard</code> &mdash; перетаскиваемая карточка вакансии, <code>useDraggable({ id: vacancy.id })</code>. CSS Transform двигает карточку визуально</li>
+  <li><code>DragOverlay</code> &mdash; &laquo;призрак&raquo; &mdash; полупрозрачная копия карточки, которая следует за курсором во время перетаскивания</li>
+</ul>
+<p><strong>Как работает оптимистичное обновление пошагово:</strong></p>
+<ol>
+  <li>Пользователь бросает карточку в другую колонку &rarr; срабатывает <code>onDragEnd</code></li>
+  <li>Сохраняем <strong>snapshot</strong> (снимок) текущего списка вакансий: <code>previousVacancies = [...vacancies]</code></li>
+  <li><strong>Мгновенно</strong> обновляем статус вакансии локально через чистую функцию <code>updateVacancyStatusLocally</code> &mdash; пользователь видит карточку в новой колонке без задержки</li>
+  <li>Отправляем <code>PATCH /vacancies/:id</code> с новым статусом на сервер</li>
+  <li>Если сервер вернул ошибку &mdash; <strong>откат</strong>: восстанавливаем <code>previousVacancies</code>, карточка возвращается на место</li>
+</ol>
+</div>
+
+<!-- Q12 -->
+<div class="question">
+<h3>12. Зачем паттерн isHydrated для фильтров?</h3>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое гидратация (hydration)?</div>
+В Next.js страница сначала рендерится на сервере в обычный HTML &mdash; пользователь быстро видит контент. Потом браузер загружает JavaScript и React &laquo;оживляет&raquo; этот HTML: привязывает обработчики кликов, инициализирует стейт. Этот процесс называется <strong>гидратацией</strong>.<br><br>
+<strong>Hydration mismatch</strong> &mdash; ошибка, когда серверный HTML отличается от того, что React сгенерировал бы на клиенте. React ожидает, что они совпадают. Если нет &mdash; выдаёт предупреждение в консоли и может перерендерить всё дерево (медленно).
+</div>
+
+<p><strong>Проблема:</strong> фильтры (поиск, статус, режим отображения) сохраняются в <code>localStorage</code>, чтобы при перезагрузке пользователь видел те же фильтры. Но на сервере <code>localStorage</code> нет &rarr; сервер рендерит HTML с дефолтными значениями. Если на клиенте сразу прочитать localStorage и отрендерить другие значения &rarr; HTML не совпадёт &rarr; hydration mismatch.</p>
+<p><strong>Решение:</strong></p>
+<ol>
+  <li>Первый рендер (и на сервере, и на клиенте): <code>isHydrated = false</code>, используются дефолтные значения &mdash; HTML совпадает</li>
+  <li>После маунта (в <code>useEffect</code>, который выполняется <strong>только на клиенте</strong>, после гидратации): читаем localStorage, обновляем стейт фильтров, ставим <code>isHydrated = true</code></li>
+</ol>
+<p>Гидратация проходит без ошибок, затем фильтры обновляются до сохранённых значений. Визуально может быть кратковременное &laquo;мигание&raquo;, но это лучше, чем ошибка гидратации.</p>
+</div>
+
+<!-- Q13 -->
+<div class="question">
+<h3>13. Что такое Feature-Sliced Design?</h3>
+
+<div class="theory">
+<div class="theory-title">Теория: зачем нужна архитектура на фронте?</div>
+Без архитектуры маленький проект быстро превращается в &laquo;спагетти&raquo;: компоненты импортируют друг друга хаотично, бизнес-логика смешана с UI, непонятно, где искать код. <strong>Архитектура</strong> задаёт правила: что куда класть, кто кого может импортировать. Это упрощает навигацию, предотвращает циклические зависимости, и новый разработчик быстрее разбирается в проекте.
+</div>
+
+<p><strong>Feature-Sliced Design (FSD)</strong> &mdash; архитектурная методология для фронтенда. Код организован в горизонтальные слои с главным правилом: <strong>импорт только из нижележащих слоёв</strong> (features может импортировать из entities и shared, но НЕ из widgets или app).</p>
+
+<table>
+  <tr><th>Слой</th><th>Назначение</th><th>Пример из проекта</th></tr>
+  <tr><td><strong>app</strong> (верхний)</td><td>Точка входа: роутинг, глобальные провайдеры</td><td>App Router страницы, AuthProvider, RootLayout</td></tr>
+  <tr><td><strong>widgets</strong></td><td>Составные UI-блоки из нескольких features/entities</td><td>VacanciesBoard, Header</td></tr>
+  <tr><td><strong>features</strong></td><td>Бизнес-действия и логика конкретных use case</td><td>CreateVacancyForm, VacanciesToolbar, auth store</td></tr>
+  <tr><td><strong>entities</strong></td><td>Доменные модели и их базовый UI</td><td>VacancyCard, VacancyStatusBadge, типы Vacancy</td></tr>
+  <tr><td><strong>shared</strong> (нижний)</td><td>Переиспользуемые утилиты, не знающие о домене</td><td>API-клиент (apiFetch), константы, UI-примитивы</td></tr>
+</table>
+
+<div class="analogy">
+<div class="analogy-title">Аналогия</div>
+Представь многоэтажный дом. Верхний этаж (app) видит всё здание. Нижний этаж (shared) &mdash; фундамент, на котором всё стоит. Средние этажи используют только то, что ниже них. Это предотвращает &laquo;электрические замыкания&raquo; (циклические зависимости).
+</div>
+</div>
+
+<!-- ===== ARCHITECTURE ===== -->
+<h2>Архитектурные решения</h2>
+
+<!-- Q14 -->
+<div class="question">
+<h3>14. Какие слабые места ты видишь в проекте?</h3>
+
+<div class="theory">
+<div class="theory-title">Зачем этот вопрос на собеседовании?</div>
+Интервьюер проверяет <strong>критическое мышление</strong>. Идеального кода не бывает &mdash; каждое решение имеет trade-off (компромисс). Кандидат, который честно говорит &laquo;вот тут слабое место, вот как я бы это улучшил&raquo; &mdash; ценнее того, кто говорит &laquo;всё идеально&raquo;.
+</div>
+
+<p><strong>Безопасность:</strong></p>
+<ul>
+  <li>Токен в <code>localStorage</code> уязвим к XSS &mdash; вредоносный JS может прочитать токен. Безопаснее <code>httpOnly cookie</code></li>
+  <li>Нет refresh-токенов: JWT живёт сутки. Если токен украден &mdash; нет способа отозвать его досрочно. В продакшене: access 15 мин + refresh 7 дней</li>
+</ul>
+<p><strong>Архитектура:</strong></p>
+<ul>
+  <li>Нет кеша запросов (React Query / SWR) &mdash; при переходе dashboard &harr; vacancies данные фетчатся заново, хотя не изменились</li>
+  <li><code>req.user</code> типизирован как <code>any</code> &mdash; нет кастомного <code>@CurrentUser()</code> декоратора, значит ошибки в обращении к полям не ловятся на этапе компиляции</li>
+  <li>Ownership-проверка в каждом сервисе, а не в переиспользуемом guard &mdash; при добавлении новых сущностей придётся дублировать логику</li>
+</ul>
+<p><strong>Масштабируемость:</strong></p>
+<ul>
+  <li>Нет пагинации &mdash; <code>GET /vacancies</code> возвращает всё разом. При 10 000 вакансий это будет медленно</li>
+  <li>JwtStrategy ходит в БД на каждый запрос &mdash; при высокой нагрузке это узкое место</li>
+</ul>
+<p><em>Это учебный проект &mdash; ограничения осознанные, цель &mdash; изучить стек и показать рабочий продукт. Я понимаю, как это улучшить в продакшене.</em></p>
+</div>
+
+<!-- Q15 -->
+<div class="question">
+<h3>15. Как бы ты масштабировал проект?</h3>
+<p><strong>Фронтенд:</strong></p>
+<ul>
+  <li><strong>React Query (TanStack Query)</strong> &mdash; кеширование запросов, дедупликация (если два компонента запрашивают одни данные &mdash; один запрос), stale-while-revalidate (показать кеш, обновить в фоне)</li>
+  <li><strong>httpOnly cookies</strong> вместо localStorage &mdash; для безопасности и SSR</li>
+  <li><strong>Server Components</strong> для статических частей (header, sidebar) &mdash; меньше JS в бандле</li>
+</ul>
+<p><strong>Бекенд:</strong></p>
+<ul>
+  <li><strong>Refresh-токены</strong> &mdash; access 15 мин (проверка без БД) + refresh 7 дней (httpOnly cookie, с ротацией)</li>
+  <li><strong>Redis</strong> &mdash; кеш для частых запросов, blacklist отозванных токенов, хранение сессий</li>
+  <li><strong>Rate limiting</strong> через <code>@nestjs/throttler</code> &mdash; защита от brute force на <code>/auth/login</code></li>
+  <li><strong>Пагинация</strong> &mdash; cursor-based для списка вакансий (лучше offset для больших объёмов)</li>
+  <li><strong>CASL</strong> &mdash; декларативные permissions вместо ручных проверок в каждом сервисе</li>
+</ul>
+<p><strong>Инфраструктура:</strong></p>
+<ul>
+  <li><strong>E2E тесты</strong> &mdash; Playwright для критических user flows</li>
+  <li><strong>CI/CD</strong> &mdash; GitHub Actions: lint, тесты, build при каждом PR</li>
+  <li><strong>Docker Compose</strong> &mdash; единая среда разработки (backend + frontend + PostgreSQL + Redis)</li>
+  <li><strong>Мониторинг</strong> &mdash; Sentry для ошибок, логирование через NestJS Logger</li>
+</ul>
+</div>
+
+<!-- Q16 -->
+<div class="question">
+<h3>16. Зачем CORS и как он настроен?</h3>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое Origin и Same-Origin Policy?</div>
+<strong>Origin</strong> = протокол + домен + порт. Например: <code>http://localhost:3000</code> и <code>http://localhost:3001</code> &mdash; разные origin (разные порты).<br><br>
+<strong>Same-Origin Policy (SOP)</strong> &mdash; правило безопасности браузера: JavaScript на странице может делать запросы только к тому же origin, откуда загружена страница. Это защита от вредоносных сайтов: если вы залогинены в банке, вредоносный сайт не сможет отправить запрос к API банка от вашего имени.<br><br>
+<strong>CORS (Cross-Origin Resource Sharing)</strong> &mdash; механизм, который позволяет серверу ОСЛАБИТЬ это правило: &laquo;я разрешаю запросы от таких-то origin&raquo;.
+</div>
+
+<p><strong>Зачем в проекте?</strong> Фронтенд (<code>:3000</code>) и бекенд (<code>:3001</code>) &mdash; разные origin. Без CORS браузер заблокирует все API-запросы.</p>
+<p><strong>Настройка:</strong></p>
+<ul>
+  <li><code>origin: ['http://localhost:3000', 'http://192.168.1.219:3000']</code> &mdash; только эти домены могут обращаться к API</li>
+  <li><code>credentials: true</code> &mdash; разрешает отправку cookies и заголовка Authorization в кросс-доменных запросах</li>
+</ul>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое Preflight-запрос?</div>
+Перед &laquo;сложными&raquo; запросами (POST с JSON, запросы с кастомными заголовками типа Authorization) браузер автоматически отправляет <strong>предварительный запрос</strong> методом <code>OPTIONS</code>. Сервер отвечает заголовками: <code>Access-Control-Allow-Origin</code>, <code>Access-Control-Allow-Methods</code>, <code>Access-Control-Allow-Headers</code>. Если origin разрешён &mdash; браузер выполняет основной запрос. Если нет &mdash; блокирует и выдаёт ошибку в консоли.
+</div>
+
+<p><strong>Важно:</strong> CORS &mdash; защита на стороне <strong>браузера</strong>. Postman, curl и серверные запросы CORS не проверяют. Это защита пользователей от вредоносных веб-сайтов.</p>
+</div>
+
+<!-- ===== GENERAL ===== -->
+<h2>Общие вопросы по технологиям</h2>
+
+<!-- Q17 -->
+<div class="question">
+<h3>17. Чем Prisma отличается от TypeORM / raw SQL?</h3>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое ORM?</div>
+<strong>ORM (Object-Relational Mapping)</strong> &mdash; инструмент, который позволяет работать с базой данных через объекты и методы вместо написания SQL вручную. Вместо <code>SELECT * FROM users WHERE id = '123'</code> пишешь <code>prisma.user.findUnique({ where: { id: '123' } })</code>.<br><br>
+<strong>Плюсы ORM:</strong> type safety (TypeScript знает структуру данных), защита от SQL-инъекций, автокомплит в IDE, автоматические миграции. <strong>Минусы:</strong> абстракция может генерировать неоптимальные SQL-запросы, сложные запросы трудно выразить через ORM.
+</div>
+
+<div class="theory">
+<div class="theory-title">Теория: что такое миграции БД?</div>
+<strong>Миграции</strong> &mdash; скрипты, которые изменяют структуру базы данных (добавить таблицу, столбец, индекс). Они хранятся в коде и выполняются последовательно. Это как &laquo;git для базы данных&raquo;: каждый разработчик в команде может применить все миграции и получить одинаковую структуру БД. В Prisma: меняешь <code>schema.prisma</code> &rarr; <code>npx prisma migrate dev</code> &mdash; Prisma сравнивает текущую схему с БД и генерирует SQL-миграцию автоматически.
+</div>
+
+<table>
+  <tr><th></th><th>Prisma</th><th>TypeORM</th><th>Raw SQL</th></tr>
+  <tr><td>Описание схемы</td><td>Свой DSL в <code>.prisma</code> файле</td><td>Декораторы на TypeScript-классах</td><td>SQL DDL (<code>CREATE TABLE</code>)</td></tr>
+  <tr><td>Type safety</td><td>Полная: автогенерация типизированного клиента</td><td>Частичная: бывают runtime-ошибки</td><td>Нет: строки без проверок</td></tr>
+  <tr><td>Миграции</td><td>Автоматические из diff схемы</td><td>Авто или ручные</td><td>Полностью вручную</td></tr>
+  <tr><td>Сложные запросы</td><td>Ограничены (есть <code>$queryRaw</code> для SQL)</td><td>QueryBuilder &mdash; гибче</td><td>Полная гибкость</td></tr>
+  <tr><td>SQL-инъекции</td><td>Защищена (параметризация)</td><td>Защищена</td><td>Риск при неаккуратном коде</td></tr>
+</table>
+<p><strong>Выбор Prisma:</strong> простая CRUD-схема, отличный DX (developer experience), полная type safety, быстрый старт. Для сложных аналитических запросов можно использовать <code>$queryRaw</code>.</p>
+</div>
+
+<!-- Q18 -->
+<div class="question">
+<h3>18. Что такое App Router в Next.js?</h3>
+
+<div class="theory">
+<div class="theory-title">Теория: Server Components vs Client Components</div>
+<strong>Server Components</strong> (по умолчанию в App Router) &mdash; рендерятся на сервере. Их JavaScript НЕ отправляется в браузер &rarr; меньше размер бандла. Могут напрямую работать с БД и файловой системой. НО: не могут использовать useState, useEffect, обработчики событий (onClick).<br><br>
+<strong>Client Components</strong> (директива <code>'use client'</code> в начале файла) &mdash; обычные React-компоненты. Рендерятся на клиенте. Могут использовать хуки, стейт, обработчики событий. Именно они нужны для интерактивности (формы, кнопки, drag-and-drop).
+</div>
+
+<div class="theory">
+<div class="theory-title">Теория: файловая маршрутизация</div>
+В Next.js маршруты определяются структурой файлов и папок. Не нужно вручную описывать роуты (как в React Router). Специальные файлы:
+<ul>
+  <li><code>page.tsx</code> &mdash; страница. <code>app/vacancies/page.tsx</code> &rarr; маршрут <code>/vacancies</code></li>
+  <li><code>layout.tsx</code> &mdash; обёртка для страниц внутри папки. Не перерендеривается при навигации между дочерними страницами</li>
+  <li><code>loading.tsx</code> &mdash; UI загрузки (показывается, пока страница грузится)</li>
+  <li><code>error.tsx</code> &mdash; UI ошибки (ловит ошибки в дочерних компонентах)</li>
+  <li><code>[id]/page.tsx</code> &mdash; динамический маршрут. <code>app/vacancy/[id]/page.tsx</code> &rarr; <code>/vacancy/123</code></li>
+</ul>
+</div>
+
+<table>
+  <tr><th></th><th>App Router (Next.js 13+)</th><th>Pages Router (старый)</th></tr>
+  <tr><td>Папка</td><td><code>app/</code></td><td><code>pages/</code></td></tr>
+  <tr><td>Компоненты по умолчанию</td><td>Server Components</td><td>Все клиентские</td></tr>
+  <tr><td>Data fetching</td><td>async компоненты, fetch()</td><td>getServerSideProps, getStaticProps</td></tr>
+  <tr><td>Layouts</td><td>Вложенные <code>layout.tsx</code></td><td><code>_app.tsx</code> (один на всё)</td></tr>
+  <tr><td>Загрузка/ошибки</td><td>Встроенные <code>loading.tsx</code>, <code>error.tsx</code></td><td>Кастомные решения</td></tr>
+</table>
+
+<div class="theory">
+<div class="theory-title">Теория: Route Groups</div>
+Круглые скобки в имени папки &mdash; <strong>Route Group</strong>. <code>app/(protected)/dashboard/page.tsx</code> даёт маршрут <code>/dashboard</code>, а НЕ <code>/protected/dashboard</code>. Скобки позволяют группировать маршруты (и применять к ним общий layout) без влияния на URL.
+</div>
+
+<p><strong>В проекте:</strong> <code>app/(protected)/</code> &mdash; route group с <code>ProtectedLayout</code> (проверка авторизации). Внутри: <code>dashboard</code>, <code>vacancies</code>, <code>vacancy/[id]</code>. Публичные страницы (<code>login</code>, <code>register</code>) живут вне этой группы. <code>'use client'</code> стоит на компонентах с интерактивностью (формы, drag-and-drop, стейт).</p>
+</div>
+
+<!-- Q19 -->
+<div class="question">
+<h3>19. Жизненный цикл запроса: от клика &laquo;Сохранить вакансию&raquo; до записи в БД</h3>
+
+<div class="theory">
+<div class="theory-title">Зачем знать этот путь?</div>
+Понимание полного жизненного цикла запроса &mdash; ключевой навык. Когда что-то не работает, ты можешь локализовать проблему: это фронт не отправил токен? Или CORS заблокировал? Или валидация не прошла? Или база вернула ошибку? Каждый шаг &mdash; потенциальная точка отказа.
+</div>
+
+<p><strong>Фронтенд (в браузере пользователя):</strong></p>
+<ol>
+  <li>Пользователь заполняет форму и нажимает &laquo;Сохранить&raquo; &rarr; React вызывает <code>onSubmit</code></li>
+  <li><code>onSubmit</code> вызывает <code>createVacancy(data)</code>, которая внутри вызывает <code>apiFetch('POST', '/vacancies', body)</code></li>
+  <li><code>apiFetch</code> добавляет заголовки: <code>Content-Type: application/json</code> и <code>Authorization: Bearer &lt;token&gt;</code> (читает токен из localStorage)</li>
+  <li>Нативный <code>fetch</code> отправляет HTTP POST на <code>http://localhost:3001/vacancies</code></li>
+</ol>
+
+<p><strong>Бекенд (на сервере NestJS):</strong></p>
+<ol start="5">
+  <li><strong>CORS</strong> &mdash; NestJS проверяет заголовок <code>Origin</code>. Если он в списке разрешённых &mdash; продолжает. Если нет &mdash; запрос отклоняется (браузер видит ошибку в консоли)</li>
+  <li><strong>ValidationPipe</strong> &mdash; тело запроса преобразуется в экземпляр <code>CreateVacancyDto</code>. <code>class-validator</code> проверяет: title и company не пустые? notes &mdash; строка? Лишние поля удаляются (whitelist). Если валидация не прошла &rarr; <strong>400 Bad Request</strong> с описанием ошибок</li>
+  <li><strong>JwtAuthGuard &rarr; JwtStrategy</strong> &mdash; извлекает токен из заголовка, проверяет подпись JWT (не подделан?), декодирует payload, по email ищет пользователя в БД. Если токен невалиден или истёк &rarr; <strong>401 Unauthorized</strong>. Если OK &mdash; данные пользователя записываются в <code>req.user</code></li>
+  <li><strong>VacanciesController.create()</strong> &mdash; получает <code>req.user.id</code> (из JWT) и валидированное тело запроса. Вызывает <code>VacanciesService.create(userId, dto)</code></li>
+  <li><strong>VacanciesService &rarr; Prisma</strong> &mdash; <code>prisma.vacancy.create({ data: { title, company, notes, status: 'SAVED', userId } })</code>. Prisma генерирует SQL: <code>INSERT INTO "Vacancy" (id, title, company, status, notes, "userId") VALUES (...)</code> и отправляет в PostgreSQL</li>
+  <li><strong>PostgreSQL</strong> записывает строку, генерирует UUID, проверяет FK constraint (userId существует?), возвращает созданную запись</li>
+  <li>Ответ идёт обратно: PostgreSQL &rarr; Prisma (конвертирует в объект) &rarr; Service &rarr; Controller &rarr; NestJS сериализует в JSON &rarr; <strong>HTTP 201 Created</strong> + тело ответа</li>
+</ol>
+
+<p><strong>Обратно на фронт:</strong></p>
+<ol start="12">
+  <li><code>apiFetch</code> получает ответ, проверяет статус (2xx = OK), парсит JSON</li>
+  <li>Компонент обновляет локальный стейт (добавляет новую вакансию в массив), React перерендеривает UI &mdash; пользователь видит новую карточку</li>
+</ol>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1 @@
+export { useVacancyAnalysis } from './model/use-vacancy-analysis';

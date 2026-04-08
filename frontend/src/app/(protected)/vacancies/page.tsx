@@ -8,7 +8,7 @@ import {VacanciesBoard} from "@/widgets/vacancies/vacancies-board/vacancies-boar
 import {ErrorMessage} from "@/shared/ui/error-message/error-message";
 import {PageLoader} from "@/shared/ui/page-loader/page-loader";
 import {EmptyState} from "@/shared/ui/empty-state/empty-state";
-import {useVacanciesPage} from "@/features/vacancy/model/use-vacancies-page";
+import {useVacanciesPage} from "@/features/auth/model/use-vacancies-page";
 import {PageShell} from "@/shared/ui/page-shell/page-shell";
 import {PageHeader} from "@/shared/ui/page-header/page-header";
 import {DndContext, DragOverlay} from "@dnd-kit/core";
