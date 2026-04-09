@@ -1,25 +1,31 @@
 'use client';
 
-import { useState, type Dispatch, type SetStateAction } from 'react';
+import {useState} from 'react';
 import {
     createVacancy,
     deleteVacancy,
     updateVacancy,
     CreateVacancyRequest,
 } from '@/shared/api/vacancies';
-import { Vacancy } from '@/entities/vacancy/model/vacancy';
-import { VacancyStatus } from '@/entities/vacancy/model/vacancy';
-import {updateVacancyStatusLocally} from "@/shared/lib/vacancies/update-vacancy-status-locally";
+import {Vacancy} from '@/entities/vacancy/model/vacancy';
+import {VacancyStatus} from '@/entities/vacancy/model/vacancy';
+import {useVacancyStore} from "@/entities/vacancy/model/use-vacancy-store";
 
 type UseVacancyActionsParams = {
     vacancies: Vacancy[];
-    setVacancies: Dispatch<SetStateAction<Vacancy[]>>;
 };
 
 export function useVacancyActions({
                                       vacancies,
-                                      setVacancies,
                                   }: UseVacancyActionsParams) {
+    const addVacancy = useVacancyStore((state) => state.addVacancy);
+    const removeVacancyById = useVacancyStore((state) => state.removeVacancyById);
+    const replaceVacancy = useVacancyStore((state) => state.replaceVacancy);
+    const updateVacancyStatusLocally = useVacancyStore(
+        (state) => state.updateVacancyStatusLocally
+    );
+
+    const setVacancies = useVacancyStore((state) => state.setVacancies);
 
     const [deletingVacancyId, setDeletingVacancyId] = useState<string | null>(null);
     const [actionError, setActionError] = useState('');
@@ -28,7 +34,7 @@ export function useVacancyActions({
         try {
             setActionError('');
             const createdVacancy = await createVacancy(payload);
-            setVacancies((prev) => [createdVacancy, ...prev]);
+            addVacancy(createdVacancy);
         } catch (error) {
             console.error(error);
             setActionError(
@@ -42,7 +48,7 @@ export function useVacancyActions({
             setDeletingVacancyId(id);
             setActionError('');
             await deleteVacancy(id);
-            setVacancies((prev) => prev.filter((vacancy) => vacancy.id !== id));
+            removeVacancyById(id);
         } catch (error) {
             console.error(error);
             setActionError(
@@ -53,26 +59,22 @@ export function useVacancyActions({
         }
     };
 
-
     const handleUpdateVacancyStatus = async (
         vacancyId: string,
         nextStatus: VacancyStatus,
     ) => {
         const previousVacancies = vacancies;
 
-        setVacancies((prev) =>
-            updateVacancyStatusLocally(prev, vacancyId, nextStatus),
-        );
+        updateVacancyStatusLocally(vacancyId, nextStatus);
 
         try {
-            setActionError('');
             const updated = await updateVacancy(vacancyId, {
                 status: nextStatus,
             });
+            setActionError('');
 
-            setVacancies((prev) =>
-                prev.map((v) => (v.id === vacancyId ? updated : v)),
-            );
+
+            replaceVacancy(updated);
         } catch (error) {
             setVacancies(previousVacancies);
             setActionError(

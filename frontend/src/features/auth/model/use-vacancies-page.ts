@@ -2,7 +2,6 @@
 
 import {useEffect, useState} from 'react';
 import {getVacancies} from '@/shared/api/vacancies';
-import {Vacancy} from '@/entities/vacancy/model/vacancy';
 import {VacancyViewMode} from '@/features/vacancy/view-mode-switcher/model/view-mode';
 import {getStorageItem, setStorageItem} from '@/shared/browser/local-storage';
 import {LOCAL_STORAGE_KEYS} from '@/shared/config/local-storage';
@@ -10,11 +9,16 @@ import {useVacancyAnalysis} from "@/features/vacancy/analyze-vacancy/model/use-v
 import {useVacancyActions} from "@/features/vacancy/actions/model/use-vacancy-actions";
 import {useVacancyFilters} from "@/features/vacancy/filters";
 import {useVacancyDnd} from "@/features/vacancy/dnd";
+import {useVacancyStore} from "@/entities/vacancy/model/use-vacancy-store";
 
 export function useVacanciesPage() {
-    const [vacancies, setVacancies] = useState<Vacancy[]>([]);
-    const [isVacanciesLoading, setIsVacanciesLoading] = useState(true);
-    const [vacanciesError, setVacanciesError] = useState('');
+    const vacancies = useVacancyStore(state => state.vacancies);
+    const isVacanciesLoading = useVacancyStore(state => state.isVacanciesLoading);
+    const vacanciesError = useVacancyStore(state => state.vacanciesError);
+
+    const setVacancies = useVacancyStore((state) => state.setVacancies);
+    const setIsVacanciesLoading = useVacancyStore((state) => state.setIsVacanciesLoading);
+    const setVacanciesError = useVacancyStore((state) => state.setVacanciesError);
 
     const [viewMode, setViewMode] = useState<VacancyViewMode>('list');
 
@@ -39,7 +43,7 @@ export function useVacanciesPage() {
         };
 
         void loadVacancies();
-    }, []);
+    }, [setIsVacanciesLoading, setVacanciesError, setVacancies]);
 
 
     useEffect(() => {
@@ -65,7 +69,6 @@ export function useVacanciesPage() {
 
     const actions = useVacancyActions({
         vacancies,
-        setVacancies
     })
 
     const filters = useVacancyFilters(vacancies);

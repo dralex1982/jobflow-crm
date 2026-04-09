@@ -18,23 +18,29 @@ import {VacancyAnalysisPanel} from "@/features/vacancy/analyze-vacancy/ui/vacanc
 export default function VacanciesPage() {
 
     const {
-        filteredVacancies,
         vacancies,
         isVacanciesLoading,
         vacanciesError,
-        deletingVacancyId,
-        searchValue,
-        statusFilter,
         viewMode,
         isHydrated,
-        isFiltered,
-        actionError,
-        setSearchValue,
-        setStatusFilter,
+
         setViewMode,
-        handleResetFilters,
+
+        deletingVacancyId,
+        actionError,
         handleCreateVacancy,
         handleDeleteVacancy,
+        handleUpdateVacancyStatus,
+
+        searchValue,
+        statusFilter,
+        isFiltered,
+        filteredVacancies,
+        isFiltersHydrated,
+        setSearchValue,
+        setStatusFilter,
+        handleResetFilters,
+
         activeVacancy,
         handleDragStart,
         handleDragEnd,
