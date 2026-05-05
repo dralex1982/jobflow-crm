@@ -1,9 +1,12 @@
  # JobFlow CRM
 
   Job application tracker with a Kanban board and pipeline management.
-![Kanban Board]("https://github.com/user-attachments/assets/c265a219-2569-4293-b029-5dbddba1bd48")
-![Dashboard]("https://github.com/user-attachments/assets/6d2e85fa-f150-4e02-9ebf-1621dc6942a9">)
+  
+ ## Screenshots
 
+![Kanban Board](https://github.com/user-attachments/assets/c265a219-2569-4293-b029-5dbddba1bd48)
+![Dashboard](https://github.com/user-attachments/assets/6d2e85fa-f150-4e02-9ebf-1621dc6942a9)
+ 
   ## Tech Stack
 
   - **Backend:** NestJS, Prisma, PostgreSQL, JWT auth
