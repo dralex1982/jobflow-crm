@@ -1,8 +1,8 @@
  # JobFlow CRM
 
   Job application tracker with a Kanban board and pipeline management.
-![Kanban Board](https://private-user-images.githubusercontent.com/38065114/587708235-996cb92f-e165-451e-9daf-4f0d9225930b.png)
-![Dashboard](https://private-user-images.githubusercontent.com/38065114/587710222-0757daf3-d28a-40d5-8366-a7fa20e79a38.png)
+![Kanban Board](<img width="1739" height="882" alt="Image" src="https://github.com/user-attachments/assets/c265a219-2569-4293-b029-5dbddba1bd48" />)
+![Dashboard](<img width="1342" height="841" alt="Image" src="https://github.com/user-attachments/assets/6d2e85fa-f150-4e02-9ebf-1621dc6942a9" />)
 
   ## Tech Stack
 
