@@ -1,44 +1,54 @@
- # JobFlow CRM
+# JobFlow CRM
 
-  Job application tracker with a Kanban board and pipeline management.
-  
- ## Screenshots
+Job application tracker with a Kanban board and pipeline management.
+
+## Screenshots
 
 ![Kanban Board](https://github.com/user-attachments/assets/c265a219-2569-4293-b029-5dbddba1bd48)
+
 ![Dashboard](https://github.com/user-attachments/assets/6d2e85fa-f150-4e02-9ebf-1621dc6942a9)
- 
-  ## Tech Stack
 
-  - **Backend:** NestJS, Prisma, PostgreSQL, JWT auth
-  - **Frontend:** Next.js 16, React 19, Tailwind CSS 4, Zustand, dnd-kit
+## Features
 
-  ## Getting Started
+- Kanban board with drag-and-drop
+- List and board view modes
+- AI-powered vacancy analysis
+- Search and status filtering
+- JWT Auth (access/refresh tokens)
+- Create, edit, delete vacancies
 
-  ### Prerequisites
+## Tech Stack
 
-  - Node.js 18+
-  - PostgreSQL
-  - pnpm
+**Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS 4, Zustand, dnd-kit  
+**Backend:** NestJS, PostgreSQL, Prisma, JWT Auth
 
-  ### Backend
+## Getting Started
 
-  ```bash
-  cd backend
-  pnpm install
-  cp .env.example .env   # configure your database URL and secrets
-  npx prisma migrate dev
-  pnpm run start:dev
+### Prerequisites
 
-  Frontend
+- Node.js 18+
+- PostgreSQL
+- pnpm
 
-  cd frontend
-  pnpm install
-  pnpm run dev
+### Backend
 
-  Features
+```bash
+cd backend
+pnpm install
+cp .env.example .env
+npx prisma migrate dev
+pnpm run start:dev
+```
 
-  - User registration and login (JWT)
-  - Create, edit, delete vacancies
-  - Kanban board with drag-and-drop 
-  - Search and status filtering
-  - List and board view modes
+### Frontend
+
+```bash
+cd frontend
+pnpm install
+pnpm run dev
+```
+
+## Author
+
+Frontend Developer based in Israel · Open to work  
+[LinkedIn](https://www.linkedin.com/in/aleksei-zhuravlev1803/)
