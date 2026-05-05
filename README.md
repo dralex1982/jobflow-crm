@@ -1,6 +1,10 @@
  # JobFlow CRM
 
   Job application tracker with a Kanban board and pipeline management.
+![Kanban Board]<img width="1739" height="882" alt="image" src="https://github.com/user-attachments/assets/996cb92f-e165-451e-9daf-4f0d9225930b" />
+
+![Dashboard]<img width="1342" height="841" alt="image" src="https://github.com/user-attachments/assets/0757daf3-d28a-40d5-8366-a7fa20e79a38" />
+
 
   ## Tech Stack
 
@@ -34,6 +38,6 @@
 
   - User registration and login (JWT)
   - Create, edit, delete vacancies
-  - Kanban board with drag-and-drop
+  - Kanban board with drag-and-drop 
   - Search and status filtering
   - List and board view modes
